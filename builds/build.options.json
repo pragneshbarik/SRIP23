@@ -1,0 +1,11 @@
+{
+  "additionalFiles": "",
+  "builtInToolsFolders": "",
+  "compiler.optimization_flags": "",
+  "customBuildProperties": "",
+  "fqbn": "SparkFun:apollo3:sfe_artemis_atp:svl_baud=115200,loader=option_svl",
+  "hardwareFolders": "C:\\Users\\Pragnesh\\AppData\\Local\\Arduino15\\packages",
+  "otherLibrariesFolders": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries",
+  "runtime.ide.version": "10607",
+  "sketchLocation": "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a"
+}

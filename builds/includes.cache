@@ -1,0 +1,277 @@
+[
+  {
+    "Sourcefile": null,
+    "Include": "",
+    "Includepath": "C:\\Users\\Pragnesh\\AppData\\Local\\Arduino15\\packages\\SparkFun\\hardware\\apollo3\\2.2.1\\cores\\arduino"
+  },
+  {
+    "Sourcefile": null,
+    "Include": "",
+    "Includepath": "C:\\Users\\Pragnesh\\AppData\\Local\\Arduino15\\packages\\SparkFun\\hardware\\apollo3\\2.2.1\\variants\\SFE_ARTEMIS_ATP"
+  },
+  {
+    "Sourcefile": "e:\\Projects\\Artemis\\builds\\sketch\\sketch_may29a.ino.cpp",
+    "Include": "ICM_20948.h",
+    "Includepath": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SparkFun_9DoF_IMU_Breakout_-_ICM_20948_-_Arduino_Library\\src"
+  },
+  {
+    "Sourcefile": "e:\\Projects\\Artemis\\builds\\sketch\\sketch_may29a.ino.cpp",
+    "Include": "Wire.h",
+    "Includepath": "C:\\Users\\Pragnesh\\AppData\\Local\\Arduino15\\packages\\SparkFun\\hardware\\apollo3\\2.2.1\\libraries\\Wire\\src"
+  },
+  {
+    "Sourcefile": "e:\\Projects\\Artemis\\builds\\sketch\\sketch_may29a.ino.cpp",
+    "Include": "SPI.h",
+    "Includepath": "C:\\Users\\Pragnesh\\AppData\\Local\\Arduino15\\packages\\SparkFun\\hardware\\apollo3\\2.2.1\\libraries\\SPI\\src"
+  },
+  {
+    "Sourcefile": "e:\\Projects\\Artemis\\builds\\sketch\\sketch_may29a.ino.cpp",
+    "Include": "SdFat.h",
+    "Includepath": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src"
+  },
+  {
+    "Sourcefile": "e:\\Projects\\Artemis\\builds\\sketch\\sketch_may29a.ino.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SparkFun_9DoF_IMU_Breakout_-_ICM_20948_-_Arduino_Library\\src\\ICM_20948.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SparkFun_9DoF_IMU_Breakout_-_ICM_20948_-_Arduino_Library\\src\\util\\ICM_20948_C.c",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\AppData\\Local\\Arduino15\\packages\\SparkFun\\hardware\\apollo3\\2.2.1\\libraries\\Wire\\src\\Wire.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\AppData\\Local\\Arduino15\\packages\\SparkFun\\hardware\\apollo3\\2.2.1\\libraries\\SPI\\src\\SPI.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\ExFatLib\\ExFatDbg.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\ExFatLib\\ExFatFile.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\ExFatLib\\ExFatFilePrint.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\ExFatLib\\ExFatFileWrite.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\ExFatLib\\ExFatFormatter.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\ExFatLib\\ExFatName.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\ExFatLib\\ExFatPartition.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\ExFatLib\\ExFatVolume.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\FatLib\\FatDbg.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\FatLib\\FatFile.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\FatLib\\FatFileLFN.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\FatLib\\FatFilePrint.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\FatLib\\FatFileSFN.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\FatLib\\FatFormatter.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\FatLib\\FatName.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\FatLib\\FatPartition.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\FatLib\\FatVolume.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\FreeStack.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\FsLib\\FsFile.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\FsLib\\FsNew.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\FsLib\\FsVolume.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\MinimumSerial.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\SdCard\\SdCardInfo.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\SdCard\\SdSpiCard.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\SdCard\\SdioTeensy.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\SpiDriver\\SdSpiArtemis.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\SpiDriver\\SdSpiChipSelect.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\SpiDriver\\SdSpiDue.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\SpiDriver\\SdSpiESP.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\SpiDriver\\SdSpiParticle.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\SpiDriver\\SdSpiSTM32.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\SpiDriver\\SdSpiSTM32Core.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\SpiDriver\\SdSpiTeensy3.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\common\\FmtNumber.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\common\\FsCache.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\common\\FsDateTime.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\common\\FsName.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\common\\FsStructs.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\common\\FsUtf.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\common\\upcase.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\iostream\\StdioStream.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\iostream\\StreamBaseClass.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\iostream\\istream.cpp",
+    "Include": "",
+    "Includepath": null
+  },
+  {
+    "Sourcefile": "C:\\Users\\Pragnesh\\Documents\\Arduino\\libraries\\SdFat\\src\\iostream\\ostream.cpp",
+    "Include": "",
+    "Includepath": null
+  }
+]

@@ -1,0 +1,7 @@
+{
+    "configuration": "svl_baud=115200,loader=option_svl",
+    "board": "SparkFun:apollo3:sfe_artemis_atp",
+    "sketch": "sketch_may29a\\sketch_may29a.ino",
+    "output": "../builds",
+    "port": "COM9"
+}
