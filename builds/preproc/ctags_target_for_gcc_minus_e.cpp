@@ -24,124 +24,133 @@ const byte PIN_SPI_COPI = 7;
 ICM_20948_SPI myICM; // If using SPI create an ICM_20948_SPI object
 SdFat sd;
 File csvFile;
-float cTime, accX, accY, accZ, gyroX, gyroY, gyroZ;
-int count, count_h = 0;
-float passThresh = 75.123;
-float MS_Thresh = 75.123;
-float UP_Thresh = 31.123;
-float WZ_prev, WZ_pprev, last_heel, last_HS_time = 0.0;
-int flag_HO,flag_MS,flag_ZC,flag_toe,flag_Int = 0;
-int cs, fa = -100;
-float HS, LP, TO, ZC, MS = 0.0;
-int timePacket = 120;
+//===Variable Declaration===============================================================
+float passThres = 90.123;
+float LPThres = 90.123;
+int indHS, indLP, indMS, indTO, indZC, j = 0;
+float maxA, minA = 0.0;
+float LL, CS, startTime, wz, wz_prev, wz_pprev, flagForce, thisMS, hsTime, msTime, lpTime, hsms, rtAngDS;
+float thisHS, thisTO, prevCS;
+int countH, flagLP, flagMS, flagZC, flagTO;
 
-float aySeq[50];
-int count_aySeq = 0;
-
-//Constants for the AFO
-const int M = 3;
-const float nu = 5;
-const float eta = 1;
-const float pi = 3.14;
-const float f_min = 1.3;
-//Initialize the variables for the AFO
-float F;
-float th_d = 0.00, th_cap = 0.00;
-float start;
-float Y[2 * M + 2] = {0, 0, 0, 2 * pi * f_min, 0, 0, 0, 0};
-float dt = 0.0;
-float phi_GC, phi_HS = 0.0;
-
-
-
+float cTime,
+    accX, accY, accZ, gyroX, gyroY, gyroZ;
+int count = 0;
 
 char fileName[13] = "WIPAD" "00.csv";
 
-void setup() {
+void setup()
+{
 
   Serial.begin(115200);
-//  while(!SERIAL_PORT){};
+  //  while(!SERIAL_PORT){};
 
   pinMode(PIN_PWR_LED, OUTPUT);
   pinMode(PIN_STAT_LED, OUTPUT);
 
 
   SPI.begin();
-//  beginSD();
-////  fileName = setupSD(csvFile, sd, fileName); 
-//
-//  Serial.print("Initializing SD card...");
-//  if (!sd.begin(PIN_MICROSD_CHIP_SELECT)) {
-//    Serial.println("Card failed, or not present");
-//    // Blink Red Error ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//    digitalWrite(PIN_PWR_LED, HIGH);                                       
-//    float startTime = millis();
-//    while (1);
-//  }
-//  const uint8_t BASE_NAME_SIZE = sizeof(FILE_BASE_NAME) - 1;
-//  //char fileName[13] = FILE_BASE_NAME "00.csv";
-//  Serial.println("card initialized.");
-//  while (sd.exists(fileName))
-//  {
-//      if (fileName[BASE_NAME_SIZE + 1] != '9')
-//      {
-//        fileName[BASE_NAME_SIZE + 1]++;
-//      }
-//      else if (fileName[BASE_NAME_SIZE] != '9')
-//      {
-//        fileName[BASE_NAME_SIZE + 1] = '0';
-//        fileName[BASE_NAME_SIZE]++;
-//      }
-//      else
-//      {
-//        Serial.println("Can't create file name");
-//        // Blink Red Error ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//        digitalWrite(PIN_PWR_LED, HIGH);                                       
-//      }
-//  }
-//  csvFile = sd.open(fileName, FILE_WRITE);
-//  csvFile.print("currTime");       csvFile.print(",");
-//
-//  csvFile.print("accelX");         csvFile.print(",");
-//  csvFile.print("accelY");         csvFile.print(","); 
-//  csvFile.print("accelZ");         csvFile.print(",");
-//
-//  csvFile.print("gyroX");          csvFile.print(",");
-//  csvFile.print("gyroY");          csvFile.print(","); 
-//  csvFile.print("gyroZ");          
-//
-//  csvFile.println();
-//  csvFile.close();
+  beginSD();
+  //  fileName = setupSD(csvFile, sd, fileName);
 
+  Serial.print("Initializing SD card...");
+  if (!sd.begin(PIN_MICROSD_CHIP_SELECT))
+  {
+    Serial.println("Card failed, or not present");
+    // Blink Red Error ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    digitalWrite(PIN_PWR_LED, HIGH);
+    float startTime = millis();
+    while (1)
+      ;
+  }
+  const uint8_t BASE_NAME_SIZE = sizeof("WIPAD") - 1;
+  // char fileName[13] = FILE_BASE_NAME "00.csv";
+  Serial.println("card initialized.");
+  while (sd.exists(fileName))
+  {
+    if (fileName[BASE_NAME_SIZE + 1] != '9')
+    {
+      fileName[BASE_NAME_SIZE + 1]++;
+    }
+    else if (fileName[BASE_NAME_SIZE] != '9')
+    {
+      fileName[BASE_NAME_SIZE + 1] = '0';
+      fileName[BASE_NAME_SIZE]++;
+    }
+    else
+    {
+      Serial.println("Can't create file name");
+      // Blink Red Error ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      digitalWrite(PIN_PWR_LED, HIGH);
+    }
+  }
+  csvFile = sd.open(fileName, (
+# 86 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+                             2 /* +1 == FREAD|FWRITE */ 
+# 86 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+                             | 
+# 86 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+                             0x0200 /* open with file create */ 
+# 86 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+                             | 
+# 86 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+                             0x4000 /* non blocking I/O (POSIX style) */ 
+# 86 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+                             /*|< Open at EOF.*/));
+  csvFile.print("currTime");
+  csvFile.print(",");
+
+  csvFile.print("accelX");
+  csvFile.print(",");
+  csvFile.print("accelY");
+  csvFile.print(",");
+  csvFile.print("accelZ");
+  csvFile.print(",");
+
+  csvFile.print("gyroX");
+  csvFile.print(",");
+  csvFile.print("gyroY");
+  csvFile.print(",");
+  csvFile.print("gyroZ");
+
+  csvFile.println();
+  csvFile.close();
 
   pinMode(PIN_IMU_CHIP_SELECT, OUTPUT);
-  digitalWrite(PIN_IMU_CHIP_SELECT, HIGH); //Be sure IMU is deselected
-
+  digitalWrite(PIN_IMU_CHIP_SELECT, HIGH); // Be sure IMU is deselected
 
   enableCIPOpullUp(); // Enable CIPO pull-up on the OLA
 
   SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0)); // Do a fake transaction
   SPI.endTransaction();
   enableCIPOpullUp(); // Re-enable the CIPO pull-up
-# 133 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
-  //Reset ICM by power cycling it
+
+
+
+
+
+
+
+  // Reset ICM by power cycling it
   imuPowerOff();
   delay(10);
   imuPowerOn(); // Enable power for the OLA IMU
   delay(100); // Wait for the IMU to power up
 
-
-
   bool initialized = false;
-  while( !initialized ){
+  while (!initialized)
+  {
 
-    myICM.begin( PIN_IMU_CHIP_SELECT, SPI, 5000000 /* You can override the default SPI frequency*/ );
-    Serial.print( (reinterpret_cast<const __FlashStringHelper *>(("Initialization of the sensor returned: "))) );
-    Serial.println( myICM.statusString() );
-    if( myICM.status != ICM_20948_Stat_Ok ){
-      Serial.println( "Trying again..." );
+    myICM.begin(PIN_IMU_CHIP_SELECT, SPI, 5000000 /* You can override the default SPI frequency*/);
+    Serial.print((reinterpret_cast<const __FlashStringHelper *>(("Initialization of the sensor returned: "))));
+    Serial.println(myICM.statusString());
+    if (myICM.status != ICM_20948_Stat_Ok)
+    {
+      Serial.println("Trying again...");
       delay(500);
-    }else{
+    }
+    else
+    {
       initialized = true;
     }
   }
@@ -161,166 +170,179 @@ void setup() {
   ICM_20948_dlpcfg_t myDLPcfg;
   myDLPcfg.a = acc_d5bw7_n8bw3;
   myDLPcfg.g = gyr_d5bw7_n8bw9;
-
 }
 
-void loop() {
+void loop()
+{
 
   count = count + 1;
-//  csvFile = sd.open(fileName, FILE_WRITE);
+  csvFile = sd.open(fileName, (
+# 166 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+                             2 /* +1 == FREAD|FWRITE */ 
+# 166 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+                             | 
+# 166 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+                             0x0200 /* open with file create */ 
+# 166 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+                             | 
+# 166 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+                             0x4000 /* non blocking I/O (POSIX style) */ 
+# 166 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+                             /*|< Open at EOF.*/));
 
-  float startTime = millis();
-  while ( ((millis() - startTime)/1000) <= timePacket)
+  startTime = millis();
+  while (((millis() - startTime) / 1000) <= 5)
   {
     if (myICM.dataReady())
     {
-        myICM.getAGMT();
-        cTime = (millis() - startTime);
-        gyroX = myICM.gyrX(); gyroY = myICM.gyrY(); gyroZ = -myICM.gyrZ();
-        accX = myICM.accX(); accY = myICM.accY(); accZ = myICM.accZ();
+      myICM.getAGMT();
+      cTime = (millis() - startTime);
+      gyroX = myICM.gyrX();
+      gyroY = myICM.gyrY();
+      gyroZ = myICM.gyrZ();
+      accX = myICM.accX();
+      accY = myICM.accY();
+      accZ = myICM.accZ();
+      wz = gyroZ;
 
-//      Heel-Strike Detection =================================================================================
-        if (gyroZ >= passThresh && WZ_prev <= passThresh){
-          count_h = count_h + 1;
+      // HEEL STRIKE DETECTION
+      if (wz >= passThres && wz_prev <= passThres)
+      {
+        countH = countH + 1;
+        flagForce = 0;
+      }
+      if (wz <= passThres && wz_prev >= passThres)
+      {
+        countH = countH + 1;
+      }
+      if (wz_prev <= wz_pprev && wz_prev <= wz && wz_prev < 0 && countH > 0)
+      {
+        if (countH % 2 == 0)
+        {
+          hsTime = startTime;
+          countH = 0;
+          flagLP = 1;
+          flagMS = 1;
+          flagZC = 1;
+          thisHS = wz_prev;
+          indHS = 1;
+          hsms = 200 * (hsTime - msTime);
+          rtAngDS = (180 / pi) * atan((wz_prev - thisMS) / (hsTime - msTime));
         }
-        if (gyroZ <= passThresh && WZ_prev >= passThresh){
-          count_h = count_h + 1;
+      }
+
+      // ZERO CROSSING 1 DETECTION
+      if (wz_prev < 0 && wz > 0 && flagZC == 1 && startTime - hsTime > 0.04)
+      {
+        thisZC = wz;
+        flagZC = 0;
+        indZC = 1;
+      }
+
+      // LAMBDA PEAK DETECTION
+      if (wz_prev >= wz_pprev && wz_prev >= wz && wz_pprev > 0.8 * thisHS && wz_pprev < passThres && flagLP == 1 && t - hsTime > 0.18)
+      {
+        lpTime = startTime;
+        flagLP = 0;
+        flagTO = 1;
+        thisLP = wz_prev;
+        indLP = 1;
+        flagForce = 1;
+        flagZC = 0;
+        //======================Classifier Algorithm Invoke at Lambda-Peak Detection ======================
+        if (wz > 6.23)
+        {
+          CS = 4 * 100 + 400; // Upstairs
         }
-        if (WZ_prev <= WZ_pprev && WZ_prev <= gyroZ && WZ_prev < 0 && count_h > 0){
-          if (count_h%2 == 0){
-            last_HS_time = (millis() - startTime)/1000;
-            last_heel = gyroZ;
-            count_h = 0;
-            flag_HO = 1;
-            flag_MS = 1;
-            flag_ZC = 1;
-            HS = gyroZ;
-
-            phi_HS = Y[0];
-
+        if (hsms > calDS)
+        {
+          CS = 3 * 100 + 400; // Downstairs
+        }
+        else if (wz < 0)
+        {
+          // if( (prevCS == 800 || prevCS == 700 || prevCS == 400)  ){
+          // CS = -1*100 + 400;                                       // Transition
+          // }
+          if (thisHS < LL)
+          {
+            CS = 1 * 100 + 400; // Overground
           }
         }
-        else{
-          HS = 0;
-        }
-//      Heel-OFF Detection ====================================================================================
-//      Classifier Decision Making Event ----------------------------------------------------------------------
-        if (WZ_prev >= WZ_pprev && WZ_prev >= gyroZ && WZ_pprev > last_heel && WZ_pprev < passThresh && flag_HO == 1){
-          if((millis() - startTime)/1000 - last_HS_time > 0.175){
+      }
 
-            flag_HO = 0;
-            flag_toe = 1;
-            flag_ZC = 1;
-            LP = gyroZ;
+      // TOE-OFF DETECTION
 
-            if (WZ_prev > UP_Thresh){
-              cs = 900;
-            }
-            else if (fa == 200){
-              cs = 800;
-            }
-            else if (WZ_prev < 0){
-              if (fa == 0){
-                cs = 600;
-              }
-            }
-          }
+      if (wz_prev <= wz_pprev && wz_prev <= wz && wz_prev < 0.9 * thisHS && flagTO == 1)
+      {
+        if (startTime - lpTime > 0.21)
+        {
+          toTime = startTime;
+          flagTO = 0;
+          // flagMS = 1;
+          thisTO = wz_prev;
+          indTO = 1;
         }
-        else{
-          LP = 0;
-        }
+      }
 
-//      TOE-OFF Detection =====================================================================================
-        if (WZ_prev <= WZ_pprev && WZ_prev <= gyroZ && WZ_pprev < 0.66*last_heel && flag_toe == 1){
-          flag_toe = 0;
-          flag_ZC = 1;
-          TO = gyroZ;
-        }
-        else{
-          TO = 0;
-        }
-//      Zero-Crossing =========================================================================================
-        if (WZ_pprev < 0 && WZ_prev < 0 && gyroZ >= 0 && flag_ZC == 1){
-          flag_ZC = 0;
-          ZC = gyroZ;
-          if (flag_Int == 0){
-            flag_Int = 1;
-          }
-          else if (flag_Int == 1){
-            flag_Int = 0;
-          }
-        }
-        else{
-          ZC = 0;
-        }
+      // MIDSWING DETECTION
+      if (wz_prev >= wz_pprev && wz_prev >= wz && wz_prev > LPThres && flagMS == 1)
+      {
+        msTime = startTime;
+        flagMS = 0;
+        thisMS = wz_prev;
+        indMS = 1;
+      }
 
-//      Append
-        if (flag_Int == 1){
-          aySeq[count_aySeq] = -accY/10.0 + 98.1;
-          count_aySeq = count_aySeq + 1;
-        }
-//      MID-SWING ==========================================================
-        if (WZ_prev >= WZ_pprev && WZ_prev >= gyroZ && WZ_pprev > MS_Thresh && flag_MS == 1){
-          flag_Int = 0;
-          MS = gyroZ;
-          count_aySeq = 0;
-          int maxVal = aySeq[0];
+      // STATIONARY DETECTION
+      // for (j = 0; j < 15; j++)
+      // {
+      //   if (maxA < A[j])
+      //   {
+      //     maxA = A[j];
+      //   }
+      //   if (minA > A[j])
+      //   {
+      //     minA = A[j];
+      //   }
+      // }
+      // if (abs(maxA - minA) <= 3 && maxA > -8 && minA > -8)
+      // {
+      //   CS = 0 * 100 + 400; // Stationary
+      // }
 
-          for (int itr = 0; itr < (sizeof(aySeq) / sizeof(aySeq[0])); itr++) {
+      prevCS = CS;
+      wz_pprev = wz_prev;
+      wz_prev = wz;
 
-            maxVal = max(aySeq[itr],maxVal);
-          }
-          if (maxVal > 125){
-            fa = 200;
-          }
-          else{
-            fa = 0;
-          }
+      Write_SDcard();
+      Serial.print(flagLP);
+      Serial.print(",");
+      Serial.print(flagMS);
+      Serial.print(",");
+      Serial.print(flagLP);
+      Serial.print(",");
 
-          memset(aySeq, 0, sizeof(aySeq));
-        }
-        else{
-          MS = 0;
-        }
-
-        WZ_pprev = WZ_prev;
-        WZ_prev = gyroZ;
-        start = millis();
-        AFO();
-        phi_GC=((Y[0]-phi_HS)*100.0)/(4*3.1415926535897932384626433832795);
-
-        Serial.print(gyroZ);
-        Serial.print(",");
-        Serial.print(th_cap);
-        Serial.print(",");
-        Serial.print(phi_GC);
-//        SERIAL_PORT.print(",");
-//        SERIAL_PORT.print(TO); 
-//        SERIAL_PORT.print(",");
-//        SERIAL_PORT.print(ZC);
-//        SERIAL_PORT.print(",");
-//        SERIAL_PORT.print(MS);  
-        Serial.println();
-
+      Serial.println();
     }
-    dt=(millis()-start)/1000.0;
   }
-  if(count%2 == 1){ // Blink Blue
+  if (count % 2 == 1)
+  { // Blink Blue
     digitalWrite(PIN_PWR_LED, LOW);
     digitalWrite(PIN_STAT_LED, HIGH);
   }
-  else{ // Blink Red
+  else
+  { // Blink Red
     digitalWrite(PIN_PWR_LED, HIGH);
     digitalWrite(PIN_STAT_LED, LOW);
   }
-//  csvFile.close();
+  csvFile.close();
 }
 
 void beginSD()
 {
   pinMode(PIN_MICROSD_POWER, OUTPUT);
   pinMode(PIN_MICROSD_CHIP_SELECT, OUTPUT);
-  digitalWrite(PIN_MICROSD_CHIP_SELECT, HIGH); //Be sure SD is deselected
+  digitalWrite(PIN_MICROSD_CHIP_SELECT, HIGH); // Be sure SD is deselected
   delay(1);
 
   microSDPowerOn();
@@ -342,67 +364,29 @@ void imuPowerOff()
   pinMode(PIN_IMU_POWER, OUTPUT);
   digitalWrite(PIN_IMU_POWER, LOW);
 }
-void AFO()
+
+void Write_SDcard()
 {
-
-  // Calculate the Pelvis Acceleration from the Analog Accelerometer data
-  // Obtained by checking accelerometer reading for 1 g and -1 g and using equation y=mx+c;x=(y-c)/m;
-  th_d=gyroZ;//*9.81;//-13.21;
-
-  th_cap = Y[2 * M + 1]; //Initializing th_cap  to beta
-  //Serial.println(th_cap);
-  for (int i = 0; i <= M - 1; i++)
+  if (csvFile)
   {
-    th_cap = th_cap + Y[M + 1 + i] * sin(Y[i]);
+    csvFile.print(String(cTime));
+    csvFile.print(",");
+
+    csvFile.print(String(accX));
+    csvFile.print(",");
+    csvFile.print(String(accY));
+    csvFile.print(",");
+    csvFile.print(String(accZ));
+    csvFile.print(",");
+
+    csvFile.print(String(gyroX));
+    csvFile.print(",");
+    csvFile.print(String(gyroY));
+    csvFile.print(",");
+    csvFile.print(String(gyroZ));
+    csvFile.println(); // End of Row move to next row
   }
-
-  F = th_d - th_cap;
-
-  //Solving the differential equations
-  //Diff eqns of phi
-
-  for (int j = 0; j <= M - 1; j++)
-  {
-    Y[j] = Y[j] + dt * ((j + 1) * Y[M] + eta * F * cos(Y[j]));
-  }
-  //Diff eqn of omega
-  Y[M] = Y[M] + dt * eta * F * cos(Y[0]);
-
-  //Diff eqns of alpha
-  for (int k = 0; k <= M - 1; k++)
-  {
-    Y[M + 1 + k] = Y[M + 1 + k] + dt * (nu * F * sin(Y[k]));
-  }
-  //Diff eqn of Beta
-  Y[2 * M + 1] = Y[2 * M + 1] + dt * (nu * F);
-
-
-
-  //Y[0]=fmod(Y[0],4*PI);
-
-  if (Y[M] < 2 * pi * f_min)
-  {
-    Y[M] = 2 * pi * f_min;
-  }
-
-
-
 }
-//void Write_SDcard()
-//{
-//  if (csvFile){
-//    csvFile.print(String(cTime));    csvFile.print(",");
-//    
-//    csvFile.print(String(accX));        csvFile.print(",");
-//    csvFile.print(String(accY));        csvFile.print(","); 
-//    csvFile.print(String(accZ));        csvFile.print(",");
-//
-//    csvFile.print(String(gyroX));       csvFile.print(",");
-//    csvFile.print(String(gyroY));       csvFile.print(","); 
-//    csvFile.print(String(gyroZ));         
-//    csvFile.println();                  //End of Row move to next row
-//  }
-//}
 
 
 bool enableCIPOpullUp()

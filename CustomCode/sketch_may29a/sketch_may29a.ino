@@ -8,6 +8,7 @@ const byte PIN_MICROSD_POWER = 15;
 const byte PIN_SPI_SCK = 5;
 const byte PIN_SPI_CIPO = 6;
 const byte PIN_SPI_COPI = 7;
+const float pi = 3.1416;
 
 #include "ICM_20948.h"
 #include <SPI.h>
@@ -28,8 +29,8 @@ float passThres = 90.123;
 float LPThres = 90.123;
 int indHS, indLP, indMS, indTO, indZC, j = 0;
 float maxA, minA = 0.0;
-float LL, CS, startTime, wz, wz_prev, wz_pprev, flagForce, thisMS, hsTime, msTime, lpTime, hsms;
-float thisHS, thisTO, prevCS;
+float toTime, CS, startTime, wz, wz_prev, wz_pprev, flagForce, thisMS, hsTime, msTime, lpTime, hsms, rtAngDS;
+float thisHS, thisTO, prevCS, thisZC, calDS, thisLP, LL;
 int countH, flagLP, flagMS, flagZC, flagTO;
 
 float cTime,
@@ -99,6 +100,12 @@ void setup()
   csvFile.print("gyroY");
   csvFile.print(",");
   csvFile.print("gyroZ");
+
+  csvFile.print("flagLP");
+  csvFile.print(",");
+  csvFile.print("flagMS");
+  csvFile.print(",");
+  csvFile.print("flagLP");
 
   csvFile.println();
   csvFile.close();
@@ -215,7 +222,7 @@ void loop()
       }
 
       // LAMBDA PEAK DETECTION
-      if (wz_prev >= wz_pprev && wz_prev >= wz && wz_pprev > 0.8 * thisHS && wz_pprev < passThres && flagLP == 1 && t - hsTime > 0.18)
+      if (wz_prev >= wz_pprev && wz_prev >= wz && wz_pprev > 0.8 * thisHS && wz_pprev < passThres && flagLP == 1 && startTime - hsTime > 0.18)
       {
         lpTime = startTime;
         flagLP = 0;
@@ -294,8 +301,9 @@ void loop()
       SERIAL_PORT.print(",");
       SERIAL_PORT.print(flagMS);
       SERIAL_PORT.print(",");
-      SERIAL_PORT.print(flagLP);
+      SERIAL_PORT.print(flagZC);
       SERIAL_PORT.print(",");
+      SERIAL_PORT.print(flagTO);
 
       SERIAL_PORT.println();
     }
@@ -359,6 +367,15 @@ void Write_SDcard()
     csvFile.print(String(gyroY));
     csvFile.print(",");
     csvFile.print(String(gyroZ));
+    csvFile.print(",");
+    csvFile.print(String(flagLP));
+    csvFile.print(",");
+    csvFile.print(String(flagMS));
+    csvFile.print(",");
+    csvFile.print(String(flagZC));
+    csvFile.print(",");
+    csvFile.print(String(flagTO));
+
     csvFile.println(); // End of Row move to next row
   }
 }
