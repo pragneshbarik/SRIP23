@@ -42,6 +42,8 @@ int count = 0;
 
 char fileName[13] = "WIPAD" "00.csv";
 
+//==Constants for AFO=====================================
+
 //==Queue for tracking previous gyroscope values========================
 
 class GyroQueue
@@ -88,7 +90,7 @@ public:
       return std::numeric_limits<double>::min();
   }
 
-  double getMaximum()
+  double max()
   {
     double max = std::numeric_limits<double>::min();
     for (int i = 0; i < count; i++)
@@ -102,7 +104,7 @@ public:
     return max;
   }
 
-  double getMinimum()
+  double min()
   {
     double min = std::numeric_limits<double>::max();
     for (int i = 0; i < count; i++)
@@ -165,17 +167,17 @@ void setup()
     }
   }
   csvFile = sd.open(fileName, (
-# 166 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 168 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              2 /* +1 == FREAD|FWRITE */ 
-# 166 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 168 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 166 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 168 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x0200 /* open with file create */ 
-# 166 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 168 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 166 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 168 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x4000 /* non blocking I/O (POSIX style) */ 
-# 166 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 168 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              /*|< Open at EOF.*/));
   csvFile.print("currTime");
   csvFile.print(",");
@@ -268,17 +270,17 @@ void loop()
 
   count = count + 1;
   csvFile = sd.open(fileName, (
-# 257 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 259 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              2 /* +1 == FREAD|FWRITE */ 
-# 257 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 259 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 257 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 259 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x0200 /* open with file create */ 
-# 257 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 259 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 257 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 259 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x4000 /* non blocking I/O (POSIX style) */ 
-# 257 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 259 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              /*|< Open at EOF.*/));
 
   startTime = millis();
@@ -322,16 +324,24 @@ void loop()
           rtAngDS = (180 / pi) * atan((wz_prev - thisMS) / (hsTime - msTime));
         }
       }
+      else
+      {
+        indHS = 0;
+      }
 
-      // ZERO CROSSING 1 DETECTION
+      //== ZERO CROSSING 1 DETECTION
       if (wz_prev < 0 && wz > 0 && flagZC == 1 && cTime - hsTime > 0.04)
       {
         thisZC = wz;
         flagZC = 0;
         indZC = 1;
       }
+      else
+      {
+        indZC = 0;
+      }
 
-      // LAMBDA PEAK DETECTION
+      //== LAMBDA PEAK DETECTION
       if (wz_prev >= wz_pprev && wz_prev >= wz && wz_pprev > 0.8 * thisHS && wz_pprev < passThres && flagLP == 1 && cTime - hsTime > 0.18)
       {
         lpTime = cTime;
@@ -362,8 +372,12 @@ void loop()
           }
         }
       }
+      else
+      {
+        indLP = 0;
+      }
 
-      // TOE-OFF DETECTION
+      //== TOE-OFF DETECTION
 
       if (wz_prev <= wz_pprev && wz_prev <= wz && wz_prev < 0.9 * thisHS && flagTO == 1)
       {
@@ -376,8 +390,12 @@ void loop()
           indTO = 1;
         }
       }
+      else
+      {
+        indTO = 0;
+      }
 
-      // MIDSWING DETECTION
+      //== MIDSWING DETECTION
       if (wz_prev >= wz_pprev && wz_prev >= wz && wz_prev > LPThres && flagMS == 1)
       {
         msTime = cTime;
@@ -386,12 +404,11 @@ void loop()
         indMS = 1;
       }
 
-      // STATIONARY DETECTION
-      if (abs(q.getMaximum() - q.getMinimum()) <= 3 && q.getMaximum() > -8 && q.getMinimum() > -8)
+      //== STATIONARY DETECTION
+      if (abs(q.max() - q.min()) <= 3 && q.max() > -8 && q.min() > -8)
       {
         CS = 0 * 100 + 400; // Stationary
       }
-
       prevCS = CS;
       wz_pprev = wz_prev;
       wz_prev = wz;

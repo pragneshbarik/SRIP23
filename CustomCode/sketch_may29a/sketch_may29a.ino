@@ -14,6 +14,7 @@ const float pi = 3.1416;
 #include <limits>
 
 #include "ICM_20948.h"
+#include <cmath>
 #include <SPI.h>
 #include <String.h>
 #include <SdFat.h>
@@ -40,6 +41,21 @@ float cTime,
 int count = 0;
 #define FILE_BASE_NAME "WIPAD"
 char fileName[13] = FILE_BASE_NAME "00.csv";
+
+//==Constants for AFO=====================================
+const int M = 3;
+const float nu = 5;
+const float eta = 1;
+const float pi = 3.14;
+const float f_min = 1.3;
+
+//==Variables for AFO=====================================
+float F;
+float th_d = 0.00, th_cap = 0.00;
+float start;
+float Y[2 * M + 2] = {0, 0, 0, 2 * pi *f_min, 0, 0, 0, 0};
+float dt = 0.0;
+float phi_GC, phi_HS = 0.0;
 
 //==Queue for tracking previous gyroscope values========================
 #define Q_SIZE 15
@@ -87,7 +103,7 @@ public:
       return std::numeric_limits<double>::min();
   }
 
-  double getMaximum()
+  double max()
   {
     double max = std::numeric_limits<double>::min();
     for (int i = 0; i < count; i++)
@@ -101,7 +117,7 @@ public:
     return max;
   }
 
-  double getMinimum()
+  double min()
   {
     double min = std::numeric_limits<double>::max();
     for (int i = 0; i < count; i++)
@@ -286,7 +302,7 @@ void loop()
       {
         if (countH % 2 == 0)
         {
-          hsTime = cTime;
+          hsTime = get_time();
           countH = 0;
           flagLP = 1;
           flagMS = 1;
@@ -295,21 +311,30 @@ void loop()
           indHS = 1;
           hsms = 200 * (hsTime - msTime);
           rtAngDS = (180 / pi) * atan((wz_prev - thisMS) / (hsTime - msTime));
+          phi_HS = Y[0];
         }
       }
+      else
+      {
+        indHS = 0;
+      }
 
-      // ZERO CROSSING 1 DETECTION
-      if (wz_prev < 0 && wz > 0 && flagZC == 1 && cTime - hsTime > 0.04)
+      //== ZERO CROSSING 1 DETECTION
+      if (wz_prev < 0 && wz > 0 && flagZC == 1 && get_time() - hsTime > 0.04)
       {
         thisZC = wz;
         flagZC = 0;
         indZC = 1;
       }
-
-      // LAMBDA PEAK DETECTION
-      if (wz_prev >= wz_pprev && wz_prev >= wz && wz_pprev > 0.8 * thisHS && wz_pprev < passThres && flagLP == 1 && cTime - hsTime > 0.18)
+      else
       {
-        lpTime = cTime;
+        indZC = 0;
+      }
+
+      //== LAMBDA PEAK DETECTION
+      if (wz_prev >= wz_pprev && wz_prev >= wz && wz_pprev > 0.8 * thisHS && wz_pprev < passThres && flagLP == 1 && get_time() - hsTime > 0.18)
+      {
+        lpTime = get_time();
         flagLP = 0;
         flagTO = 1;
         thisLP = wz_prev;
@@ -337,42 +362,54 @@ void loop()
           }
         }
       }
+      else
+      {
+        indLP = 0;
+      }
 
-      // TOE-OFF DETECTION
+      //== TOE-OFF DETECTION
 
       if (wz_prev <= wz_pprev && wz_prev <= wz && wz_prev < 0.9 * thisHS && flagTO == 1)
       {
-        if (cTime - lpTime > 0.21)
+        if (get_time() - lpTime > 0.21)
         {
-          toTime = cTime;
+          toTime = get_time();
           flagTO = 0;
           flagMS = 1;
           thisTO = wz_prev;
           indTO = 1;
         }
       }
+      else
+      {
+        indTO = 0;
+      }
 
-      // MIDSWING DETECTION
+      //== MIDSWING DETECTION
       if (wz_prev >= wz_pprev && wz_prev >= wz && wz_prev > LPThres && flagMS == 1)
       {
-        msTime = cTime;
+        msTime = get_time();
         flagMS = 0;
         thisMS = wz_prev;
         indMS = 1;
       }
 
-      // STATIONARY DETECTION
-      if (abs(q.getMaximum() - q.getMinimum()) <= 3 && q.getMaximum() > -8 && q.getMinimum() > -8)
+      //== STATIONARY DETECTION
+      if (abs(q.max() - q.min()) <= 3 && q.max() > -8 && q.min() > -8)
       {
         CS = 0 * 100 + 400; // Stationary
       }
-
       prevCS = CS;
       wz_pprev = wz_prev;
       wz_prev = wz;
 
+      AFO();
+      phi_GC = ((Y[0] - phi_HS) * 100) / (4 * pi);
+
       Write_SDcard();
       SERIAL_PORT.print(gyroZ);
+      SERIAL_PORT.print(",");
+      SERIAL_PORT.print(th_cap);
       SERIAL_PORT.print(",");
       SERIAL_PORT.print(indHS);
       SERIAL_PORT.print(",");
@@ -387,6 +424,7 @@ void loop()
       SERIAL_PORT.println();
     }
   }
+
   if (count % 2 == 1)
   { // Blink Blue
     digitalWrite(PIN_PWR_LED, LOW);
@@ -399,6 +437,8 @@ void loop()
   }
   csvFile.close();
 }
+
+float get_time() return (millis() - startTime) / 1000.0;
 
 void beginSD()
 {
@@ -427,11 +467,53 @@ void imuPowerOff()
   digitalWrite(PIN_IMU_POWER, LOW);
 }
 
+void AFO()
+{
+
+  // Calculate the Pelvis Acceleration from the Analog Accelerometer data
+  // Obtained by checking accelerometer reading for 1 g and -1 g and using equation y=mx+c;x=(y-c)/m;
+  th_d = gyroZ; //*9.81;//-13.21;
+
+  th_cap = Y[2 * M + 1]; // Initializing th_cap  to beta
+  // Serial.println(th_cap);
+  for (int i = 0; i <= M - 1; i++)
+  {
+    th_cap = th_cap + Y[M + 1 + i] * sin(Y[i]);
+  }
+
+  F = th_d - th_cap;
+
+  // Solving the differential equations
+  // Diff eqns of phi
+
+  for (int j = 0; j <= M - 1; j++)
+  {
+    Y[j] = Y[j] + dt * ((j + 1) * Y[M] + eta * F * cos(Y[j]));
+  }
+  // Diff eqn of omega
+  Y[M] = Y[M] + dt * eta * F * cos(Y[0]);
+
+  // Diff eqns of alpha
+  for (int k = 0; k <= M - 1; k++)
+  {
+    Y[M + 1 + k] = Y[M + 1 + k] + dt * (nu * F * sin(Y[k]));
+  }
+  // Diff eqn of Beta
+  Y[2 * M + 1] = Y[2 * M + 1] + dt * (nu * F);
+
+  // Y[0]=fmod(Y[0],4*PI);
+
+  if (Y[M] < 2 * pi * f_min)
+  {
+    Y[M] = 2 * pi * f_min;
+  }
+}
+
 void Write_SDcard()
 {
   if (csvFile)
   {
-    csvFile.print((cTime));
+    csvFile.print((get_time()));
     csvFile.print(",");
 
     // csvFile.print((accX));
