@@ -32,6 +32,7 @@ File csvFile;
 float passThres = 90.123;
 float LPThres = 90.123;
 int indHS, indLP, indMS, indTO, indZC, j = 0;
+int timePacket = 120;
 float maxA, minA = 0.0;
 float toTime, CS, startTime, wz, wz_prev, wz_pprev, flagForce, thisMS, hsTime, msTime, lpTime, hsms, rtAngDS;
 float thisHS, thisTO, prevCS, thisZC, calDS, thisLP, LL;
@@ -181,19 +182,22 @@ void setup()
     }
   }
   csvFile = sd.open(fileName, (
-# 182 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 183 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              2 /* +1 == FREAD|FWRITE */ 
-# 182 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 183 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 182 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 183 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x0200 /* open with file create */ 
-# 182 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 183 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 182 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 183 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x4000 /* non blocking I/O (POSIX style) */ 
-# 182 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 183 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              /*|< Open at EOF.*/));
   csvFile.print("currTime");
+  csvFile.print(",");
+  csvFile.print("th_cap");
+
   csvFile.print(",");
 
   // csvFile.print("accelX");
@@ -284,21 +288,21 @@ void loop()
 
   count = count + 1;
   csvFile = sd.open(fileName, (
-# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              2 /* +1 == FREAD|FWRITE */ 
-# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x0200 /* open with file create */ 
-# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x4000 /* non blocking I/O (POSIX style) */ 
-# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              /*|< Open at EOF.*/));
 
   startTime = millis();
-  while (((millis() - startTime) / 1000) <= 5)
+  while (((millis() - startTime) / 1000) <= timePacket)
   {
     if (myICM.dataReady())
     {
@@ -417,6 +421,10 @@ void loop()
         flagMS = 0;
         thisMS = wz_prev;
         indMS = 1;
+      }
+      else
+      {
+        indMS = 0;
       }
 
       //== STATIONARY DETECTION
@@ -540,7 +548,7 @@ void Write_SDcard()
 {
   if (csvFile)
   {
-    csvFile.print((get_time()));
+    csvFile.print((millis()));
     csvFile.print(",");
 
     // csvFile.print((accX));
@@ -555,6 +563,8 @@ void Write_SDcard()
     // csvFile.print((gyroY));
     // csvFile.print(",");
     csvFile.print((gyroZ));
+    csvFile.print(",");
+    csvFile.print((th_cap));
     csvFile.print(",");
     csvFile.print(String(indHS));
     csvFile.print(",");

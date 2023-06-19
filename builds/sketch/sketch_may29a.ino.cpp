@@ -33,6 +33,7 @@ File csvFile;
 float passThres = 90.123;
 float LPThres = 90.123;
 int indHS, indLP, indMS, indTO, indZC, j = 0;
+int timePacket = 120;
 float maxA, minA = 0.0;
 float toTime, CS, startTime, wz, wz_prev, wz_pprev, flagForce, thisMS, hsTime, msTime, lpTime, hsms, rtAngDS;
 float thisHS, thisTO, prevCS, thisZC, calDS, thisLP, LL;
@@ -136,27 +137,6 @@ float phi_GC, phi_HS = 0.0;
 
 //==Queue for tracking previous gyroscope values========================
 
-#line 137 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
-void setup();
-#line 269 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
-void loop();
-#line 443 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
-float get_time();
-#line 445 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
-void beginSD();
-#line 455 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
-void microSDPowerOn();
-#line 461 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
-void imuPowerOn();
-#line 466 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
-void imuPowerOff();
-#line 472 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
-void AFO();
-#line 514 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
-void Write_SDcard();
-#line 548 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
-bool enableCIPOpullUp();
-#line 137 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void setup()
 {
 
@@ -204,6 +184,9 @@ void setup()
   }
   csvFile = sd.open(fileName, FILE_WRITE);
   csvFile.print("currTime");
+  csvFile.print(",");
+  csvFile.print("th_cap");
+
   csvFile.print(",");
 
   // csvFile.print("accelX");
@@ -296,7 +279,7 @@ void loop()
   csvFile = sd.open(fileName, FILE_WRITE);
 
   startTime = millis();
-  while (((millis() - startTime) / 1000) <= 5)
+  while (((millis() - startTime) / 1000) <= timePacket)
   {
     if (myICM.dataReady())
     {
@@ -415,6 +398,10 @@ void loop()
         flagMS = 0;
         thisMS = wz_prev;
         indMS = 1;
+      }
+      else
+      {
+        indMS = 0;
       }
 
       //== STATIONARY DETECTION
@@ -538,7 +525,7 @@ void Write_SDcard()
 {
   if (csvFile)
   {
-    csvFile.print((get_time()));
+    csvFile.print((millis()));
     csvFile.print(",");
 
     // csvFile.print((accX));
@@ -553,6 +540,8 @@ void Write_SDcard()
     // csvFile.print((gyroY));
     // csvFile.print(",");
     csvFile.print((gyroZ));
+    csvFile.print(",");
+    csvFile.print((th_cap));
     csvFile.print(",");
     csvFile.print(String(indHS));
     csvFile.print(",");

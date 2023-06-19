@@ -31,6 +31,7 @@ File csvFile;
 float passThres = 90.123;
 float LPThres = 90.123;
 int indHS, indLP, indMS, indTO, indZC, j = 0;
+int timePacket = 120;
 float maxA, minA = 0.0;
 float toTime, CS, startTime, wz, wz_prev, wz_pprev, flagForce, thisMS, hsTime, msTime, lpTime, hsms, rtAngDS;
 float thisHS, thisTO, prevCS, thisZC, calDS, thisLP, LL;
@@ -182,6 +183,9 @@ void setup()
   csvFile = sd.open(fileName, FILE_WRITE);
   csvFile.print("currTime");
   csvFile.print(",");
+  csvFile.print("th_cap");
+
+  csvFile.print(",");
 
   // csvFile.print("accelX");
   // csvFile.print(",");
@@ -273,7 +277,7 @@ void loop()
   csvFile = sd.open(fileName, FILE_WRITE);
 
   startTime = millis();
-  while (((millis() - startTime) / 1000) <= 5)
+  while (((millis() - startTime) / 1000) <= timePacket)
   {
     if (myICM.dataReady())
     {
@@ -392,6 +396,10 @@ void loop()
         flagMS = 0;
         thisMS = wz_prev;
         indMS = 1;
+      }
+      else
+      {
+        indMS = 0;
       }
 
       //== STATIONARY DETECTION
@@ -515,7 +523,7 @@ void Write_SDcard()
 {
   if (csvFile)
   {
-    csvFile.print((get_time()));
+    csvFile.print((millis()));
     csvFile.print(",");
 
     // csvFile.print((accX));
@@ -530,6 +538,8 @@ void Write_SDcard()
     // csvFile.print((gyroY));
     // csvFile.print(",");
     csvFile.print((gyroZ));
+    csvFile.print(",");
+    csvFile.print((th_cap));
     csvFile.print(",");
     csvFile.print(String(indHS));
     csvFile.print(",");
