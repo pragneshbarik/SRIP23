@@ -9,7 +9,6 @@ const byte PIN_SPI_SCK = 5;
 
 const byte PIN_SPI_CIPO = 6;
 const byte PIN_SPI_COPI = 7;
-const float pi = 3.1416;
 
 #include <limits>
 
@@ -43,21 +42,6 @@ int count = 0;
 char fileName[13] = FILE_BASE_NAME "00.csv";
 
 //==Constants for AFO=====================================
-const int M = 3;
-const float nu = 5;
-const float eta = 1;
-const float pi = 3.14;
-const float f_min = 1.3;
-
-//==Variables for AFO=====================================
-float F;
-float th_d = 0.00, th_cap = 0.00;
-float start;
-float Y[2 * M + 2] = {0, 0, 0, 2 * pi *f_min, 0, 0, 0, 0};
-float dt = 0.0;
-float phi_GC, phi_HS = 0.0;
-
-//==Queue for tracking previous gyroscope values========================
 #define Q_SIZE 15
 class GyroQueue
 {
@@ -133,6 +117,22 @@ public:
 };
 
 GyroQueue q;
+
+const int M = 3;
+const float nu = 5;
+const float eta = 1;
+const float pi = 3.1416;
+const float f_min = 1.3;
+
+//==Variables for AFO=====================================
+float F;
+float th_d = 0.00, th_cap = 0.00;
+float start;
+float Y[2 * M + 2] = {0, 0, 0, 2 * pi *f_min, 0, 0, 0, 0};
+float dt = 0.0;
+float phi_GC, phi_HS = 0.0;
+
+//==Queue for tracking previous gyroscope values========================
 
 void setup()
 {
@@ -438,7 +438,7 @@ void loop()
   csvFile.close();
 }
 
-float get_time() return (millis() - startTime) / 1000.0;
+float get_time() { return (millis() - startTime) / 1000.0; }
 
 void beginSD()
 {

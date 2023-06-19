@@ -10,10 +10,10 @@ const byte PIN_SPI_SCK = 5;
 
 const byte PIN_SPI_CIPO = 6;
 const byte PIN_SPI_COPI = 7;
-const float pi = 3.1416;
 
-# 15 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
+# 14 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
 
+# 16 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
 # 17 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
 # 18 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
 # 19 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
@@ -43,8 +43,6 @@ int count = 0;
 char fileName[13] = "WIPAD" "00.csv";
 
 //==Constants for AFO=====================================
-
-//==Queue for tracking previous gyroscope values========================
 
 class GyroQueue
 {
@@ -121,6 +119,22 @@ public:
 
 GyroQueue q;
 
+const int M = 3;
+const float nu = 5;
+const float eta = 1;
+const float pi = 3.1416;
+const float f_min = 1.3;
+
+//==Variables for AFO=====================================
+float F;
+float th_d = 0.00, th_cap = 0.00;
+float start;
+float Y[2 * M + 2] = {0, 0, 0, 2 * pi *f_min, 0, 0, 0, 0};
+float dt = 0.0;
+float phi_GC, phi_HS = 0.0;
+
+//==Queue for tracking previous gyroscope values========================
+
 void setup()
 {
 
@@ -167,17 +181,17 @@ void setup()
     }
   }
   csvFile = sd.open(fileName, (
-# 168 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 182 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              2 /* +1 == FREAD|FWRITE */ 
-# 168 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 182 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 168 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 182 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x0200 /* open with file create */ 
-# 168 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 182 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 168 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 182 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x4000 /* non blocking I/O (POSIX style) */ 
-# 168 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 182 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              /*|< Open at EOF.*/));
   csvFile.print("currTime");
   csvFile.print(",");
@@ -270,17 +284,17 @@ void loop()
 
   count = count + 1;
   csvFile = sd.open(fileName, (
-# 259 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              2 /* +1 == FREAD|FWRITE */ 
-# 259 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 259 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x0200 /* open with file create */ 
-# 259 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 259 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x4000 /* non blocking I/O (POSIX style) */ 
-# 259 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              /*|< Open at EOF.*/));
 
   startTime = millis();
@@ -313,7 +327,7 @@ void loop()
       {
         if (countH % 2 == 0)
         {
-          hsTime = cTime;
+          hsTime = get_time();
           countH = 0;
           flagLP = 1;
           flagMS = 1;
@@ -322,6 +336,7 @@ void loop()
           indHS = 1;
           hsms = 200 * (hsTime - msTime);
           rtAngDS = (180 / pi) * atan((wz_prev - thisMS) / (hsTime - msTime));
+          phi_HS = Y[0];
         }
       }
       else
@@ -330,7 +345,7 @@ void loop()
       }
 
       //== ZERO CROSSING 1 DETECTION
-      if (wz_prev < 0 && wz > 0 && flagZC == 1 && cTime - hsTime > 0.04)
+      if (wz_prev < 0 && wz > 0 && flagZC == 1 && get_time() - hsTime > 0.04)
       {
         thisZC = wz;
         flagZC = 0;
@@ -342,9 +357,9 @@ void loop()
       }
 
       //== LAMBDA PEAK DETECTION
-      if (wz_prev >= wz_pprev && wz_prev >= wz && wz_pprev > 0.8 * thisHS && wz_pprev < passThres && flagLP == 1 && cTime - hsTime > 0.18)
+      if (wz_prev >= wz_pprev && wz_prev >= wz && wz_pprev > 0.8 * thisHS && wz_pprev < passThres && flagLP == 1 && get_time() - hsTime > 0.18)
       {
-        lpTime = cTime;
+        lpTime = get_time();
         flagLP = 0;
         flagTO = 1;
         thisLP = wz_prev;
@@ -381,9 +396,9 @@ void loop()
 
       if (wz_prev <= wz_pprev && wz_prev <= wz && wz_prev < 0.9 * thisHS && flagTO == 1)
       {
-        if (cTime - lpTime > 0.21)
+        if (get_time() - lpTime > 0.21)
         {
-          toTime = cTime;
+          toTime = get_time();
           flagTO = 0;
           flagMS = 1;
           thisTO = wz_prev;
@@ -398,7 +413,7 @@ void loop()
       //== MIDSWING DETECTION
       if (wz_prev >= wz_pprev && wz_prev >= wz && wz_prev > LPThres && flagMS == 1)
       {
-        msTime = cTime;
+        msTime = get_time();
         flagMS = 0;
         thisMS = wz_prev;
         indMS = 1;
@@ -413,8 +428,13 @@ void loop()
       wz_pprev = wz_prev;
       wz_prev = wz;
 
+      AFO();
+      phi_GC = ((Y[0] - phi_HS) * 100) / (4 * pi);
+
       Write_SDcard();
       Serial.print(gyroZ);
+      Serial.print(",");
+      Serial.print(th_cap);
       Serial.print(",");
       Serial.print(indHS);
       Serial.print(",");
@@ -429,6 +449,7 @@ void loop()
       Serial.println();
     }
   }
+
   if (count % 2 == 1)
   { // Blink Blue
     digitalWrite(PIN_PWR_LED, LOW);
@@ -441,6 +462,8 @@ void loop()
   }
   csvFile.close();
 }
+
+float get_time() { return (millis() - startTime) / 1000.0; }
 
 void beginSD()
 {
@@ -469,11 +492,53 @@ void imuPowerOff()
   digitalWrite(PIN_IMU_POWER, LOW);
 }
 
+void AFO()
+{
+
+  // Calculate the Pelvis Acceleration from the Analog Accelerometer data
+  // Obtained by checking accelerometer reading for 1 g and -1 g and using equation y=mx+c;x=(y-c)/m;
+  th_d = gyroZ; //*9.81;//-13.21;
+
+  th_cap = Y[2 * M + 1]; // Initializing th_cap  to beta
+  // Serial.println(th_cap);
+  for (int i = 0; i <= M - 1; i++)
+  {
+    th_cap = th_cap + Y[M + 1 + i] * sin(Y[i]);
+  }
+
+  F = th_d - th_cap;
+
+  // Solving the differential equations
+  // Diff eqns of phi
+
+  for (int j = 0; j <= M - 1; j++)
+  {
+    Y[j] = Y[j] + dt * ((j + 1) * Y[M] + eta * F * cos(Y[j]));
+  }
+  // Diff eqn of omega
+  Y[M] = Y[M] + dt * eta * F * cos(Y[0]);
+
+  // Diff eqns of alpha
+  for (int k = 0; k <= M - 1; k++)
+  {
+    Y[M + 1 + k] = Y[M + 1 + k] + dt * (nu * F * sin(Y[k]));
+  }
+  // Diff eqn of Beta
+  Y[2 * M + 1] = Y[2 * M + 1] + dt * (nu * F);
+
+  // Y[0]=fmod(Y[0],4*PI);
+
+  if (Y[M] < 2 * pi * f_min)
+  {
+    Y[M] = 2 * pi * f_min;
+  }
+}
+
 void Write_SDcard()
 {
   if (csvFile)
   {
-    csvFile.print((cTime));
+    csvFile.print((get_time()));
     csvFile.print(",");
 
     // csvFile.print((accX));
