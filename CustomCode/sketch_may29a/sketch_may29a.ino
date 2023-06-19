@@ -403,6 +403,7 @@ void loop()
       wz_pprev = wz_prev;
       wz_prev = wz;
 
+      start = millis();
       AFO();
       phi_GC = ((Y[0] - phi_HS) * 100) / (4 * pi);
 
@@ -423,6 +424,7 @@ void loop()
 
       SERIAL_PORT.println();
     }
+    dt = (millis() - start) / 1000.0;
   }
 
   if (count % 2 == 1)

@@ -140,21 +140,21 @@ float phi_GC, phi_HS = 0.0;
 void setup();
 #line 269 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void loop();
-#line 441 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
-float get_time();
 #line 443 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+float get_time();
+#line 445 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void beginSD();
-#line 453 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 455 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void microSDPowerOn();
-#line 459 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 461 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void imuPowerOn();
-#line 464 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 466 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void imuPowerOff();
-#line 470 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 472 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void AFO();
-#line 512 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 514 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void Write_SDcard();
-#line 546 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 548 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 bool enableCIPOpullUp();
 #line 137 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void setup()
@@ -426,6 +426,7 @@ void loop()
       wz_pprev = wz_prev;
       wz_prev = wz;
 
+      start = millis();
       AFO();
       phi_GC = ((Y[0] - phi_HS) * 100) / (4 * pi);
 
@@ -446,6 +447,7 @@ void loop()
 
       SERIAL_PORT.println();
     }
+    dt = (millis() - start) / 1000.0;
   }
 
   if (count % 2 == 1)
