@@ -137,6 +137,27 @@ float phi_GC, phi_HS = 0.0;
 
 //==Queue for tracking previous gyroscope values========================
 
+#line 138 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+void setup();
+#line 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+void loop();
+#line 451 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+float get_time();
+#line 453 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+void beginSD();
+#line 463 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+void microSDPowerOn();
+#line 469 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+void imuPowerOn();
+#line 474 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+void imuPowerOff();
+#line 480 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+void AFO();
+#line 522 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+void Write_SDcard();
+#line 558 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+bool enableCIPOpullUp();
+#line 138 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void setup()
 {
 
@@ -185,7 +206,7 @@ void setup()
   csvFile = sd.open(fileName, FILE_WRITE);
   csvFile.print("currTime");
   csvFile.print(",");
-  csvFile.print("th_cap");
+  csvFile.print("phi_GC");
 
   csvFile.print(",");
 
@@ -420,7 +441,7 @@ void loop()
       Write_SDcard();
       SERIAL_PORT.print(gyroZ);
       SERIAL_PORT.print(",");
-      SERIAL_PORT.print(th_cap);
+      SERIAL_PORT.print(phi_GC);
       SERIAL_PORT.print(",");
       SERIAL_PORT.print(indHS);
       SERIAL_PORT.print(",");
@@ -484,7 +505,7 @@ void AFO()
 
   // Calculate the Pelvis Acceleration from the Analog Accelerometer data
   // Obtained by checking accelerometer reading for 1 g and -1 g and using equation y=mx+c;x=(y-c)/m;
-  th_d = gyroZ; //*9.81;//-13.21;
+  th_d = (gyroZ * pi) / 180; //*9.81;//-13.21;
 
   th_cap = Y[2 * M + 1]; // Initializing th_cap  to beta
   // Serial.println(th_cap);
@@ -541,7 +562,7 @@ void Write_SDcard()
     // csvFile.print(",");
     csvFile.print((gyroZ));
     csvFile.print(",");
-    csvFile.print((th_cap));
+    csvFile.print((phi_GC));
     csvFile.print(",");
     csvFile.print(String(indHS));
     csvFile.print(",");

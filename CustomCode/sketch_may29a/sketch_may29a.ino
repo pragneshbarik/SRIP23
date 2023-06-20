@@ -183,7 +183,7 @@ void setup()
   csvFile = sd.open(fileName, FILE_WRITE);
   csvFile.print("currTime");
   csvFile.print(",");
-  csvFile.print("th_cap");
+  csvFile.print("phi_GC");
 
   csvFile.print(",");
 
@@ -418,7 +418,7 @@ void loop()
       Write_SDcard();
       SERIAL_PORT.print(gyroZ);
       SERIAL_PORT.print(",");
-      SERIAL_PORT.print(th_cap);
+      SERIAL_PORT.print(phi_GC);
       SERIAL_PORT.print(",");
       SERIAL_PORT.print(indHS);
       SERIAL_PORT.print(",");
@@ -482,7 +482,7 @@ void AFO()
 
   // Calculate the Pelvis Acceleration from the Analog Accelerometer data
   // Obtained by checking accelerometer reading for 1 g and -1 g and using equation y=mx+c;x=(y-c)/m;
-  th_d = gyroZ; //*9.81;//-13.21;
+  th_d = (gyroZ * pi) / 180; //*9.81;//-13.21;
 
   th_cap = Y[2 * M + 1]; // Initializing th_cap  to beta
   // Serial.println(th_cap);
@@ -539,7 +539,7 @@ void Write_SDcard()
     // csvFile.print(",");
     csvFile.print((gyroZ));
     csvFile.print(",");
-    csvFile.print((th_cap));
+    csvFile.print((phi_GC));
     csvFile.print(",");
     csvFile.print(String(indHS));
     csvFile.print(",");
