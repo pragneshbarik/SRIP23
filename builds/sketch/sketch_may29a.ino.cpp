@@ -22,6 +22,7 @@ const byte PIN_SPI_COPI = 7;
 
 #define USE_SPI
 #define SERIAL_PORT Serial
+#define SERIAL_PORT_1 Serial1
 #define SPI_PORT SPI
 #define CS_PIN PIN_IMU_CHIP_SELECT
 #define SPI_FREQ 5000000 // You can override the default SPI frequency
@@ -43,6 +44,7 @@ float cTime,
 int count = 0;
 #define FILE_BASE_NAME "WIPAD"
 char fileName[13] = FILE_BASE_NAME "00.csv";
+char dataTransmit[20];
 
 //==Constants for AFO=====================================
 #define Q_SIZE 15
@@ -122,8 +124,8 @@ public:
 GyroQueue q;
 
 const int M = 3;
-const float nu = 5;
-const float eta = 1;
+const float nu = 10;
+const float eta = 2;
 const float pi = 3.1416;
 const float f_min = 1.3;
 
@@ -133,35 +135,37 @@ float th_d = 0.00, th_cap = 0.00;
 float start;
 float Y[2 * M + 2] = {0, 0, 0, 2 * pi *f_min, 0, 0, 0, 0};
 float dt = 0.0;
-float phi_GC, phi_HS = 0.0;
+float phi_GC = 0.0, phi_HS = 0.0;
 
 //==Queue for tracking previous gyroscope values========================
-
-#line 138 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+// * sprintf
+// * phi_GC, indHS, indTO,  intMS send data to tx pins and I2C
+#line 141 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void setup();
-#line 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 269 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void loop();
-#line 451 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 470 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 float get_time();
-#line 453 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 472 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void beginSD();
-#line 463 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 482 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void microSDPowerOn();
-#line 469 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 488 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void imuPowerOn();
-#line 474 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 493 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void imuPowerOff();
-#line 480 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 499 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void AFO();
-#line 522 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 541 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void Write_SDcard();
-#line 558 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 571 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 bool enableCIPOpullUp();
-#line 138 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 141 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void setup()
 {
 
   SERIAL_PORT.begin(115200);
+  SERIAL_PORT_1.begin(115200);
   //  while(!SERIAL_PORT){};
 
   pinMode(PIN_PWR_LED, OUTPUT);
@@ -206,24 +210,16 @@ void setup()
   csvFile = sd.open(fileName, FILE_WRITE);
   csvFile.print("currTime");
   csvFile.print(",");
-  csvFile.print("phi_GC");
-
+  csvFile.print("CS");
   csvFile.print(",");
-
-  // csvFile.print("accelX");
-  // csvFile.print(",");
-  // csvFile.print("accelY");
-  // csvFile.print(",");
-  // csvFile.print("accelZ");
-  // csvFile.print(",");
-
-  // csvFile.print("gyroX");
-  // csvFile.print(",");
-  // csvFile.print("gyroY");
-  // csvFile.print(",");
+  csvFile.print("th_d");
+  csvFile.print(",");
+  csvFile.print("th_cap");
+  csvFile.print(",");
   csvFile.print("gyroZ");
   csvFile.print(",");
-
+  csvFile.print("phi_GC");
+  csvFile.print(",");
   csvFile.print("indHS");
   csvFile.print(",");
   csvFile.print("indLP");
@@ -300,7 +296,7 @@ void loop()
   csvFile = sd.open(fileName, FILE_WRITE);
 
   startTime = millis();
-  while (((millis() - startTime) / 1000) <= timePacket)
+  while (((millis() - startTime) / 1000) <= 5)
   {
     if (myICM.dataReady())
     {
@@ -308,7 +304,7 @@ void loop()
       cTime = (millis() - startTime);
       gyroX = myICM.gyrX();
       gyroY = myICM.gyrY();
-      gyroZ = myICM.gyrZ();
+      gyroZ = -myICM.gyrZ();
       accX = myICM.accX();
       accY = myICM.accY();
       accZ = myICM.accZ();
@@ -436,24 +432,47 @@ void loop()
 
       start = millis();
       AFO();
-      phi_GC = ((Y[0] - phi_HS) * 100) / (4 * pi);
+      phi_GC = ((Y[0] - phi_HS) * 100) / (2 * pi);
 
       Write_SDcard();
-      SERIAL_PORT.print(gyroZ);
-      SERIAL_PORT.print(",");
       SERIAL_PORT.print(phi_GC);
       SERIAL_PORT.print(",");
       SERIAL_PORT.print(indHS);
       SERIAL_PORT.print(",");
-      SERIAL_PORT.print(indLP);
-      SERIAL_PORT.print(",");
-      SERIAL_PORT.print(indMS);
-      SERIAL_PORT.print(",");
       SERIAL_PORT.print(indTO);
       SERIAL_PORT.print(",");
-      SERIAL_PORT.print(indZC);
-
+      SERIAL_PORT.print(indMS);
       SERIAL_PORT.println();
+
+      SERIAL_PORT_1.print(phi_GC);
+      SERIAL_PORT_1.print(",");
+      SERIAL_PORT_1.print(indHS);
+      SERIAL_PORT_1.print(",");
+      SERIAL_PORT_1.print(indTO);
+      SERIAL_PORT_1.print(",");
+      SERIAL_PORT_1.print(indMS);
+      SERIAL_PORT_1.println();
+      // SERIAL_PORT.print(gyroZ);
+      // SERIAL_PORT.print(",");
+      // SERIAL_PORT.print(phi_GC);
+      // SERIAL_PORT.print(",");
+      // SERIAL_PORT.print(th_d);
+      // SERIAL_PORT.print(",");
+      // SERIAL_PORT.print(th_cap);
+      // SERIAL_PORT.print(",");
+      // SERIAL_PORT.print(indHS);
+      // SERIAL_PORT.print(",");
+      // SERIAL_PORT.print(indLP);
+      // SERIAL_PORT.print(",");
+      // SERIAL_PORT.print(indMS);
+      // SERIAL_PORT.print(",");
+      // SERIAL_PORT.print(indTO);
+      // SERIAL_PORT.print(",");
+      // SERIAL_PORT.print(indZC);
+
+      // sprintf(dataTransmit, "%5.2f,%d,%d,%d", phi_GC, indHS, indTO, indMS);
+      // SERIAL_PORT.print(strlen(dataTransmit));
+      // SERIAL_PORT.print(",");
     }
     dt = (millis() - start) / 1000.0;
   }
@@ -499,7 +518,7 @@ void imuPowerOff()
   pinMode(PIN_IMU_POWER, OUTPUT);
   digitalWrite(PIN_IMU_POWER, LOW);
 }
-
+// AFO:
 void AFO()
 {
 
@@ -546,20 +565,14 @@ void Write_SDcard()
 {
   if (csvFile)
   {
-    csvFile.print((millis()));
+    csvFile.print(millis());
     csvFile.print(",");
-
-    // csvFile.print((accX));
-    // csvFile.print(",");
-    // csvFile.print((accY));
-    // csvFile.print(",");
-    // csvFile.print((accZ));
-    // csvFile.print(",");
-
-    // csvFile.print((gyroX));
-    // csvFile.print(",");
-    // csvFile.print((gyroY));
-    // csvFile.print(",");
+    csvFile.print(CS);
+    csvFile.print(",");
+    csvFile.print(th_d);
+    csvFile.print(",");
+    csvFile.print(th_cap);
+    csvFile.print(",");
     csvFile.print((gyroZ));
     csvFile.print(",");
     csvFile.print((phi_GC));

@@ -18,13 +18,7 @@ const byte PIN_SPI_COPI = 7;
 # 18 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
 # 19 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
 # 20 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
-
-
-
-
-
-
-
+# 28 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 ICM_20948_SPI myICM; // If using SPI create an ICM_20948_SPI object
 SdFat sd;
 File csvFile;
@@ -42,6 +36,7 @@ float cTime,
 int count = 0;
 
 char fileName[13] = "WIPAD" "00.csv";
+char dataTransmit[20];
 
 //==Constants for AFO=====================================
 
@@ -121,8 +116,8 @@ public:
 GyroQueue q;
 
 const int M = 3;
-const float nu = 5;
-const float eta = 1;
+const float nu = 10;
+const float eta = 2;
 const float pi = 3.1416;
 const float f_min = 1.3;
 
@@ -132,14 +127,16 @@ float th_d = 0.00, th_cap = 0.00;
 float start;
 float Y[2 * M + 2] = {0, 0, 0, 2 * pi *f_min, 0, 0, 0, 0};
 float dt = 0.0;
-float phi_GC, phi_HS = 0.0;
+float phi_GC = 0.0, phi_HS = 0.0;
 
 //==Queue for tracking previous gyroscope values========================
-
+// * sprintf
+// * phi_GC, indHS, indTO,  intMS send data to tx pins and I2C
 void setup()
 {
 
   Serial.begin(115200);
+  Serial1.begin(115200);
   //  while(!SERIAL_PORT){};
 
   pinMode(PIN_PWR_LED, OUTPUT);
@@ -182,38 +179,30 @@ void setup()
     }
   }
   csvFile = sd.open(fileName, (
-# 183 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 187 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              2 /* +1 == FREAD|FWRITE */ 
-# 183 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 187 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 183 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 187 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x0200 /* open with file create */ 
-# 183 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 187 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 183 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 187 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x4000 /* non blocking I/O (POSIX style) */ 
-# 183 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 187 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              /*|< Open at EOF.*/));
   csvFile.print("currTime");
   csvFile.print(",");
-  csvFile.print("phi_GC");
-
+  csvFile.print("CS");
   csvFile.print(",");
-
-  // csvFile.print("accelX");
-  // csvFile.print(",");
-  // csvFile.print("accelY");
-  // csvFile.print(",");
-  // csvFile.print("accelZ");
-  // csvFile.print(",");
-
-  // csvFile.print("gyroX");
-  // csvFile.print(",");
-  // csvFile.print("gyroY");
-  // csvFile.print(",");
+  csvFile.print("th_d");
+  csvFile.print(",");
+  csvFile.print("th_cap");
+  csvFile.print(",");
   csvFile.print("gyroZ");
   csvFile.print(",");
-
+  csvFile.print("phi_GC");
+  csvFile.print(",");
   csvFile.print("indHS");
   csvFile.print(",");
   csvFile.print("indLP");
@@ -288,21 +277,21 @@ void loop()
 
   count = count + 1;
   csvFile = sd.open(fileName, (
-# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              2 /* +1 == FREAD|FWRITE */ 
-# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x0200 /* open with file create */ 
-# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x4000 /* non blocking I/O (POSIX style) */ 
-# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              /*|< Open at EOF.*/));
 
   startTime = millis();
-  while (((millis() - startTime) / 1000) <= timePacket)
+  while (((millis() - startTime) / 1000) <= 5)
   {
     if (myICM.dataReady())
     {
@@ -310,7 +299,7 @@ void loop()
       cTime = (millis() - startTime);
       gyroX = myICM.gyrX();
       gyroY = myICM.gyrY();
-      gyroZ = myICM.gyrZ();
+      gyroZ = -myICM.gyrZ();
       accX = myICM.accX();
       accY = myICM.accY();
       accZ = myICM.accZ();
@@ -438,24 +427,47 @@ void loop()
 
       start = millis();
       AFO();
-      phi_GC = ((Y[0] - phi_HS) * 100) / (4 * pi);
+      phi_GC = ((Y[0] - phi_HS) * 100) / (2 * pi);
 
       Write_SDcard();
-      Serial.print(gyroZ);
-      Serial.print(",");
       Serial.print(phi_GC);
       Serial.print(",");
       Serial.print(indHS);
       Serial.print(",");
-      Serial.print(indLP);
-      Serial.print(",");
-      Serial.print(indMS);
-      Serial.print(",");
       Serial.print(indTO);
       Serial.print(",");
-      Serial.print(indZC);
-
+      Serial.print(indMS);
       Serial.println();
+
+      Serial1.print(phi_GC);
+      Serial1.print(",");
+      Serial1.print(indHS);
+      Serial1.print(",");
+      Serial1.print(indTO);
+      Serial1.print(",");
+      Serial1.print(indMS);
+      Serial1.println();
+      // SERIAL_PORT.print(gyroZ);
+      // SERIAL_PORT.print(",");
+      // SERIAL_PORT.print(phi_GC);
+      // SERIAL_PORT.print(",");
+      // SERIAL_PORT.print(th_d);
+      // SERIAL_PORT.print(",");
+      // SERIAL_PORT.print(th_cap);
+      // SERIAL_PORT.print(",");
+      // SERIAL_PORT.print(indHS);
+      // SERIAL_PORT.print(",");
+      // SERIAL_PORT.print(indLP);
+      // SERIAL_PORT.print(",");
+      // SERIAL_PORT.print(indMS);
+      // SERIAL_PORT.print(",");
+      // SERIAL_PORT.print(indTO);
+      // SERIAL_PORT.print(",");
+      // SERIAL_PORT.print(indZC);
+
+      // sprintf(dataTransmit, "%5.2f,%d,%d,%d", phi_GC, indHS, indTO, indMS);
+      // SERIAL_PORT.print(strlen(dataTransmit));
+      // SERIAL_PORT.print(",");
     }
     dt = (millis() - start) / 1000.0;
   }
@@ -501,7 +513,7 @@ void imuPowerOff()
   pinMode(PIN_IMU_POWER, OUTPUT);
   digitalWrite(PIN_IMU_POWER, LOW);
 }
-
+// AFO:
 void AFO()
 {
 
@@ -548,20 +560,14 @@ void Write_SDcard()
 {
   if (csvFile)
   {
-    csvFile.print((millis()));
+    csvFile.print(millis());
     csvFile.print(",");
-
-    // csvFile.print((accX));
-    // csvFile.print(",");
-    // csvFile.print((accY));
-    // csvFile.print(",");
-    // csvFile.print((accZ));
-    // csvFile.print(",");
-
-    // csvFile.print((gyroX));
-    // csvFile.print(",");
-    // csvFile.print((gyroY));
-    // csvFile.print(",");
+    csvFile.print(CS);
+    csvFile.print(",");
+    csvFile.print(th_d);
+    csvFile.print(",");
+    csvFile.print(th_cap);
+    csvFile.print(",");
     csvFile.print((gyroZ));
     csvFile.print(",");
     csvFile.print((phi_GC));

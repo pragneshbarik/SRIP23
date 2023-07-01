@@ -1,9 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.gait_client">
+    <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
    <application
         android:label="gait_client"
+        android:usesCleartextTraffic="true"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/> -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
