@@ -1,3 +1,6 @@
+// Original Author: Yogesh Singh
+// Openlog Artemis Adaptation: Pragnesh Barik
+
 const byte PIN_IMU_POWER = 27;
 const byte PIN_PWR_LED = 29;
 const byte PIN_STAT_LED = 19;
@@ -16,6 +19,7 @@ const byte PIN_SPI_COPI = 7;
 #include <cmath>
 #include <SPI.h>
 #include <String.h>
+#include <Wire.h>
 #include <SdFat.h>
 
 #define USE_SPI
@@ -44,7 +48,7 @@ int count = 0;
 char fileName[13] = FILE_BASE_NAME "00.csv";
 char dataTransmit[20];
 
-//==Constants for AFO=====================================
+//==Queue for tracking previous gyroscope values========================
 #define Q_SIZE 15
 class GyroQueue
 {
@@ -119,7 +123,7 @@ public:
   }
 };
 
-GyroQueue q;
+GyroQueue wz_q;
 
 const int M = 3;
 const float nu = 10;
@@ -135,12 +139,11 @@ float Y[2 * M + 2] = {0, 0, 0, 2 * pi *f_min, 0, 0, 0, 0};
 float dt = 0.0;
 float phi_GC = 0.0, phi_HS = 0.0;
 
-//==Queue for tracking previous gyroscope values========================
 // * sprintf
 // * phi_GC, indHS, indTO,  intMS send data to tx pins and I2C
 void setup()
 {
-
+  Wire.begin();
   SERIAL_PORT.begin(115200);
   SERIAL_PORT_1.begin(115200);
   //  while(!SERIAL_PORT){};
@@ -286,7 +289,7 @@ void loop()
       accY = myICM.accY();
       accZ = myICM.accZ();
       wz = gyroZ;
-      q.push(wz);
+      wz_q.push(wz);
 
       // HEEL STRIKE DETECTION
       if (wz >= passThres && wz_prev <= passThres)
@@ -399,7 +402,7 @@ void loop()
       }
 
       //== STATIONARY DETECTION
-      if (abs(q.max() - q.min()) <= 3 && q.max() > -8 && q.min() > -8)
+      if (abs(wz_q.max() - wz_q.min()) <= 3 && wz_q.max() > -8 && wz_q.min() > -8)
       {
         CS = 0 * 100 + 400; // Stationary
       }
@@ -412,44 +415,53 @@ void loop()
       phi_GC = ((Y[0] - phi_HS) * 100) / (2 * pi);
 
       Write_SDcard();
-      SERIAL_PORT.print(phi_GC);
-      SERIAL_PORT.print(",");
-      SERIAL_PORT.print(indHS);
-      SERIAL_PORT.print(",");
-      SERIAL_PORT.print(indTO);
-      SERIAL_PORT.print(",");
-      SERIAL_PORT.print(indMS);
-      SERIAL_PORT.println();
 
-      SERIAL_PORT_1.print(phi_GC);
-      SERIAL_PORT_1.print(",");
-      SERIAL_PORT_1.print(indHS);
-      SERIAL_PORT_1.print(",");
-      SERIAL_PORT_1.print(indTO);
-      SERIAL_PORT_1.print(",");
-      SERIAL_PORT_1.print(indMS);
-      SERIAL_PORT_1.println();
-      // SERIAL_PORT.print(gyroZ);
-      // SERIAL_PORT.print(",");
+      char buffer[50]; // Create a buffer to hold the final string
+
+      dtostrf(phi_GC, 5, 2, buffer); // Convert phi_GC to string with 5 digits, 2 decimal places
+      strcat(buffer, ",");           // Concatenate a comma to the buffer
+
+      char indHS_str[10];
+      dtostrf(indHS, 1, 0, indHS_str); // Convert indHS to string with 1 digit, 0 decimal places
+      strcat(buffer, indHS_str);       // Concatenate indHS string to the buffer
+
+      strcat(buffer, ","); // Concatenate a comma to the buffer
+
+      char indTO_str[10];
+      dtostrf(indTO, 1, 0, indTO_str); // Convert indTO to string with 1 digit, 0 decimal places
+      strcat(buffer, indTO_str);       // Concatenate indTO string to the buffer
+
+      strcat(buffer, ","); // Concatenate a comma to the buffer
+
+      char indMS_str[10];
+      dtostrf(indMS, 1, 0, indMS_str); // Convert indMS to string with 1 digit, 0 decimal places
+      strcat(buffer, indMS_str);       // Concatenate indMS string to the buffer
+
+      SERIAL_PORT.println(buffer);
+      SERIAL_PORT_1.println(buffer);
+
       // SERIAL_PORT.print(phi_GC);
-      // SERIAL_PORT.print(",");
-      // SERIAL_PORT.print(th_d);
-      // SERIAL_PORT.print(",");
-      // SERIAL_PORT.print(th_cap);
       // SERIAL_PORT.print(",");
       // SERIAL_PORT.print(indHS);
       // SERIAL_PORT.print(",");
-      // SERIAL_PORT.print(indLP);
-      // SERIAL_PORT.print(",");
-      // SERIAL_PORT.print(indMS);
-      // SERIAL_PORT.print(",");
       // SERIAL_PORT.print(indTO);
       // SERIAL_PORT.print(",");
-      // SERIAL_PORT.print(indZC);
+      // SERIAL_PORT.print(indMS);
+      // SERIAL_PORT.println();
 
-      // sprintf(dataTransmit, "%5.2f,%d,%d,%d", phi_GC, indHS, indTO, indMS);
-      // SERIAL_PORT.print(strlen(dataTransmit));
-      // SERIAL_PORT.print(",");
+      // SERIAL_PORT_1.print(phi_GC);
+      // SERIAL_PORT_1.print(",");
+      // SERIAL_PORT_1.print(indHS);
+      // SERIAL_PORT_1.print(",");
+      // SERIAL_PORT_1.print(indTO);
+      // SERIAL_PORT_1.print(",");
+      // SERIAL_PORT_1.print(indMS);
+      // SERIAL_PORT_1.println();
+
+      Wire.beginTransmission(8);
+      Wire.write(buffer);
+      Wire.endTransmission();
+      delay(1000);
     }
     dt = (millis() - start) / 1000.0;
   }
