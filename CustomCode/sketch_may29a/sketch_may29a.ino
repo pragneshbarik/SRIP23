@@ -18,6 +18,7 @@ const byte PIN_SPI_COPI = 7;
 #include "ICM_20948.h"
 #include <cmath>
 #include <SPI.h>
+#include <string>
 #include <String.h>
 #include <Wire.h>
 #include <SdFat.h>
@@ -418,27 +419,15 @@ void loop()
 
       char buffer[50]; // Create a buffer to hold the final string
 
-      dtostrf(phi_GC, 5, 2, buffer); // Convert phi_GC to string with 5 digits, 2 decimal places
-      strcat(buffer, ",");           // Concatenate a comma to the buffer
+      String res;
+      res = floatToString(phi_GC) + "," +
+            String(indHS) + "," +
+            String(indTO) + "," +
+            String(indMS) + ",";
 
-      char indHS_str[10];
-      dtostrf(indHS, 1, 0, indHS_str); // Convert indHS to string with 1 digit, 0 decimal places
-      strcat(buffer, indHS_str);       // Concatenate indHS string to the buffer
-
-      strcat(buffer, ","); // Concatenate a comma to the buffer
-
-      char indTO_str[10];
-      dtostrf(indTO, 1, 0, indTO_str); // Convert indTO to string with 1 digit, 0 decimal places
-      strcat(buffer, indTO_str);       // Concatenate indTO string to the buffer
-
-      strcat(buffer, ","); // Concatenate a comma to the buffer
-
-      char indMS_str[10];
-      dtostrf(indMS, 1, 0, indMS_str); // Convert indMS to string with 1 digit, 0 decimal places
-      strcat(buffer, indMS_str);       // Concatenate indMS string to the buffer
-
-      SERIAL_PORT.println(buffer);
-      SERIAL_PORT_1.println(buffer);
+      SERIAL_PORT.println(phi_GC);
+      SERIAL_PORT.println(res);
+      SERIAL_PORT_1.println(res);
 
       // SERIAL_PORT.print(phi_GC);
       // SERIAL_PORT.print(",");
@@ -459,9 +448,9 @@ void loop()
       // SERIAL_PORT_1.println();
 
       Wire.beginTransmission(8);
-      Wire.write(buffer);
+      // Wire.write(res);
       Wire.endTransmission();
-      delay(1000);
+      // delay(100);
     }
     dt = (millis() - start) / 1000.0;
   }
@@ -577,6 +566,48 @@ void Write_SDcard()
     csvFile.print(String(indZC));
     csvFile.println(); // End of Row move to next row
   }
+}
+
+String floatToString(float number)
+{
+  // Handle negative numbers
+  bool isNegative = false;
+  if (number < 0)
+  {
+    isNegative = true;
+    number *= -1;
+  }
+
+  // Convert integer part to string
+  int integerPart = static_cast<int>(number);
+  String integerString = String(integerPart);
+
+  // Convert decimal part to string
+  String decimalString;
+  float decimalPart = number - integerPart;
+  if (decimalPart > 0)
+  {
+    decimalString = ".";
+    const int precision = 2; // Set desired precision
+    while (decimalPart > 0 && decimalString.length() <= precision + 1)
+    {
+      decimalPart *= 10;
+      int digit = static_cast<int>(decimalPart);
+      decimalString += String(digit);
+      decimalPart -= digit;
+    }
+  }
+
+  // Combine integer and decimal parts
+  String result = integerString + decimalString;
+
+  // Add sign for negative numbers
+  if (isNegative)
+  {
+    result = "-" + result;
+  }
+
+  return result;
 }
 
 #if defined(ARDUINO_ARCH_MBED) // updated for v2.1.0 of the Apollo3 core

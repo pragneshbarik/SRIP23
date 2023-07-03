@@ -1,4 +1,7 @@
 # 1 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+// Original Author: Yogesh Singh
+// Openlog Artemis Adaptation: Pragnesh Barik
+
 const byte PIN_IMU_POWER = 27;
 const byte PIN_PWR_LED = 29;
 const byte PIN_STAT_LED = 19;
@@ -11,14 +14,16 @@ const byte PIN_SPI_SCK = 5;
 const byte PIN_SPI_CIPO = 6;
 const byte PIN_SPI_COPI = 7;
 
-# 14 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
-
-# 16 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
 # 17 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
-# 18 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
+
 # 19 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
 # 20 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
-# 28 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 21 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
+# 22 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
+# 23 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
+# 24 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
+# 25 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
+# 33 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 ICM_20948_SPI myICM; // If using SPI create an ICM_20948_SPI object
 SdFat sd;
 File csvFile;
@@ -38,7 +43,7 @@ int count = 0;
 char fileName[13] = "WIPAD" "00.csv";
 char dataTransmit[20];
 
-//==Constants for AFO=====================================
+//==Queue for tracking previous gyroscope values========================
 
 class GyroQueue
 {
@@ -113,7 +118,7 @@ public:
   }
 };
 
-GyroQueue q;
+GyroQueue wz_q;
 
 const int M = 3;
 const float nu = 10;
@@ -129,12 +134,11 @@ float Y[2 * M + 2] = {0, 0, 0, 2 * pi *f_min, 0, 0, 0, 0};
 float dt = 0.0;
 float phi_GC = 0.0, phi_HS = 0.0;
 
-//==Queue for tracking previous gyroscope values========================
 // * sprintf
 // * phi_GC, indHS, indTO,  intMS send data to tx pins and I2C
 void setup()
 {
-
+  Wire.begin();
   Serial.begin(115200);
   Serial1.begin(115200);
   //  while(!SERIAL_PORT){};
@@ -179,17 +183,17 @@ void setup()
     }
   }
   csvFile = sd.open(fileName, (
-# 187 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 191 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              2 /* +1 == FREAD|FWRITE */ 
-# 187 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 191 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 187 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 191 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x0200 /* open with file create */ 
-# 187 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 191 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 187 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 191 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x4000 /* non blocking I/O (POSIX style) */ 
-# 187 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 191 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              /*|< Open at EOF.*/));
   csvFile.print("currTime");
   csvFile.print(",");
@@ -277,17 +281,17 @@ void loop()
 
   count = count + 1;
   csvFile = sd.open(fileName, (
-# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              2 /* +1 == FREAD|FWRITE */ 
-# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x0200 /* open with file create */ 
-# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x4000 /* non blocking I/O (POSIX style) */ 
-# 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              /*|< Open at EOF.*/));
 
   startTime = millis();
@@ -304,7 +308,7 @@ void loop()
       accY = myICM.accY();
       accZ = myICM.accZ();
       wz = gyroZ;
-      q.push(wz);
+      wz_q.push(wz);
 
       // HEEL STRIKE DETECTION
       if (wz >= passThres && wz_prev <= passThres)
@@ -417,7 +421,7 @@ void loop()
       }
 
       //== STATIONARY DETECTION
-      if (abs(q.max() - q.min()) <= 3 && q.max() > -8 && q.min() > -8)
+      if (abs(wz_q.max() - wz_q.min()) <= 3 && wz_q.max() > -8 && wz_q.min() > -8)
       {
         CS = 0 * 100 + 400; // Stationary
       }
@@ -430,44 +434,41 @@ void loop()
       phi_GC = ((Y[0] - phi_HS) * 100) / (2 * pi);
 
       Write_SDcard();
-      Serial.print(phi_GC);
-      Serial.print(",");
-      Serial.print(indHS);
-      Serial.print(",");
-      Serial.print(indTO);
-      Serial.print(",");
-      Serial.print(indMS);
-      Serial.println();
 
-      Serial1.print(phi_GC);
-      Serial1.print(",");
-      Serial1.print(indHS);
-      Serial1.print(",");
-      Serial1.print(indTO);
-      Serial1.print(",");
-      Serial1.print(indMS);
-      Serial1.println();
-      // SERIAL_PORT.print(gyroZ);
-      // SERIAL_PORT.print(",");
+      char buffer[50]; // Create a buffer to hold the final string
+
+      String res;
+      res = floatToString(phi_GC) + "," +
+            String(indHS) + "," +
+            String(indTO) + "," +
+            String(indMS) + ",";
+
+      Serial.println(phi_GC);
+      Serial.println(res);
+      Serial1.println(res);
+
       // SERIAL_PORT.print(phi_GC);
-      // SERIAL_PORT.print(",");
-      // SERIAL_PORT.print(th_d);
-      // SERIAL_PORT.print(",");
-      // SERIAL_PORT.print(th_cap);
       // SERIAL_PORT.print(",");
       // SERIAL_PORT.print(indHS);
       // SERIAL_PORT.print(",");
-      // SERIAL_PORT.print(indLP);
-      // SERIAL_PORT.print(",");
-      // SERIAL_PORT.print(indMS);
-      // SERIAL_PORT.print(",");
       // SERIAL_PORT.print(indTO);
       // SERIAL_PORT.print(",");
-      // SERIAL_PORT.print(indZC);
+      // SERIAL_PORT.print(indMS);
+      // SERIAL_PORT.println();
 
-      // sprintf(dataTransmit, "%5.2f,%d,%d,%d", phi_GC, indHS, indTO, indMS);
-      // SERIAL_PORT.print(strlen(dataTransmit));
-      // SERIAL_PORT.print(",");
+      // SERIAL_PORT_1.print(phi_GC);
+      // SERIAL_PORT_1.print(",");
+      // SERIAL_PORT_1.print(indHS);
+      // SERIAL_PORT_1.print(",");
+      // SERIAL_PORT_1.print(indTO);
+      // SERIAL_PORT_1.print(",");
+      // SERIAL_PORT_1.print(indMS);
+      // SERIAL_PORT_1.println();
+
+      Wire.beginTransmission(8);
+      // Wire.write(res);
+      Wire.endTransmission();
+      // delay(100);
     }
     dt = (millis() - start) / 1000.0;
   }
@@ -583,6 +584,48 @@ void Write_SDcard()
     csvFile.print(String(indZC));
     csvFile.println(); // End of Row move to next row
   }
+}
+
+String floatToString(float number)
+{
+  // Handle negative numbers
+  bool isNegative = false;
+  if (number < 0)
+  {
+    isNegative = true;
+    number *= -1;
+  }
+
+  // Convert integer part to string
+  int integerPart = static_cast<int>(number);
+  String integerString = String(integerPart);
+
+  // Convert decimal part to string
+  String decimalString;
+  float decimalPart = number - integerPart;
+  if (decimalPart > 0)
+  {
+    decimalString = ".";
+    const int precision = 2; // Set desired precision
+    while (decimalPart > 0 && decimalString.length() <= precision + 1)
+    {
+      decimalPart *= 10;
+      int digit = static_cast<int>(decimalPart);
+      decimalString += String(digit);
+      decimalPart -= digit;
+    }
+  }
+
+  // Combine integer and decimal parts
+  String result = integerString + decimalString;
+
+  // Add sign for negative numbers
+  if (isNegative)
+  {
+    result = "-" + result;
+  }
+
+  return result;
 }
 
 
