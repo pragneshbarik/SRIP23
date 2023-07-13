@@ -1,5 +1,4 @@
 // Original Author: Yogesh Singh
-// Openlog Artemis Adaptation: Pragnesh Barik
 
 const byte PIN_IMU_POWER = 27;
 const byte PIN_PWR_LED = 29;
@@ -14,12 +13,12 @@ const byte PIN_SPI_CIPO = 6;
 const byte PIN_SPI_COPI = 7;
 
 #include <limits>
-
 #include "ICM_20948.h"
 #include <cmath>
 #include <SPI.h>
 #include <string>
 #include <String.h>
+// #include "SoftwareSerial.h"
 #include <Wire.h>
 #include <SdFat.h>
 
@@ -27,6 +26,8 @@ const byte PIN_SPI_COPI = 7;
 #define SERIAL_PORT Serial
 #define SERIAL_PORT_1 Serial1
 #define SPI_PORT SPI
+#define RXpin 13
+#define TXpin 11
 #define CS_PIN PIN_IMU_CHIP_SELECT
 #define SPI_FREQ 5000000 // You can override the default SPI frequency
 
@@ -48,6 +49,16 @@ int count = 0;
 #define FILE_BASE_NAME "WIPAD"
 char fileName[13] = FILE_BASE_NAME "00.csv";
 char dataTransmit[20];
+
+// disable FIFO
+// AM_CRITICAL_BEGIN
+// UARTn(0)->LCRH_b.FEN = 0;
+// UARTn(1)->LCRH_b.FEN = 0;
+// AM_CRITICAL_END
+
+//==Initialize UART
+UART mySerial(12, 13);
+// Qwiic_I2C qwiic;
 
 //==Queue for tracking previous gyroscope values========================
 #define Q_SIZE 15
@@ -131,7 +142,8 @@ const float nu = 10;
 const float eta = 2;
 const float pi = 3.1416;
 const float f_min = 1.3;
-
+//==Initialize Software Serial============================
+// SoftwareSerial mySerial(RXpin, TXpin);
 //==Variables for AFO=====================================
 float F;
 float th_d = 0.00, th_cap = 0.00;
@@ -146,7 +158,8 @@ void setup()
 {
   Wire.begin();
   SERIAL_PORT.begin(115200);
-  SERIAL_PORT_1.begin(115200);
+  Serial1.begin(115200);
+  mySerial.begin(115200);
   //  while(!SERIAL_PORT){};
 
   pinMode(PIN_PWR_LED, OUTPUT);
@@ -417,40 +430,17 @@ void loop()
 
       Write_SDcard();
 
-      char buffer[50]; // Create a buffer to hold the final string
-
       String res;
-      res = floatToString(phi_GC) + "," +
+
+      // max size of res : 13 bytes
+
+      res = floatToString(phi_GC, 2) + "," +
             String(indHS) + "," +
             String(indTO) + "," +
-            String(indMS) + ",";
+            String(indMS);
 
-      SERIAL_PORT.println(phi_GC);
-      SERIAL_PORT.println(res);
-      SERIAL_PORT_1.println(res);
-
-      // SERIAL_PORT.print(phi_GC);
-      // SERIAL_PORT.print(",");
-      // SERIAL_PORT.print(indHS);
-      // SERIAL_PORT.print(",");
-      // SERIAL_PORT.print(indTO);
-      // SERIAL_PORT.print(",");
-      // SERIAL_PORT.print(indMS);
-      // SERIAL_PORT.println();
-
-      // SERIAL_PORT_1.print(phi_GC);
-      // SERIAL_PORT_1.print(",");
-      // SERIAL_PORT_1.print(indHS);
-      // SERIAL_PORT_1.print(",");
-      // SERIAL_PORT_1.print(indTO);
-      // SERIAL_PORT_1.print(",");
-      // SERIAL_PORT_1.print(indMS);
-      // SERIAL_PORT_1.println();
-
-      Wire.beginTransmission(8);
-      // Wire.write(res);
-      Wire.endTransmission();
-      // delay(100);
+      mySerial.println(res);
+      Serial.println(res);
     }
     dt = (millis() - start) / 1000.0;
   }
@@ -500,8 +490,6 @@ void imuPowerOff()
 void AFO()
 {
 
-  // Calculate the Pelvis Acceleration from the Analog Accelerometer data
-  // Obtained by checking accelerometer reading for 1 g and -1 g and using equation y=mx+c;x=(y-c)/m;
   th_d = (gyroZ * pi) / 180; //*9.81;//-13.21;
 
   th_cap = Y[2 * M + 1]; // Initializing th_cap  to beta
@@ -568,8 +556,12 @@ void Write_SDcard()
   }
 }
 
-String floatToString(float number)
+String floatToString(float number, int precision)
 {
+  // Handle Overflow
+  if (number > 999)
+    number = 999;
+
   // Handle negative numbers
   bool isNegative = false;
   if (number < 0)
@@ -588,7 +580,6 @@ String floatToString(float number)
   if (decimalPart > 0)
   {
     decimalString = ".";
-    const int precision = 2; // Set desired precision
     while (decimalPart > 0 && decimalString.length() <= precision + 1)
     {
       decimalPart *= 10;

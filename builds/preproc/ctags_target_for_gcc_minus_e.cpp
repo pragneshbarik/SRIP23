@@ -1,6 +1,5 @@
 # 1 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 // Original Author: Yogesh Singh
-// Openlog Artemis Adaptation: Pragnesh Barik
 
 const byte PIN_IMU_POWER = 27;
 const byte PIN_PWR_LED = 29;
@@ -14,16 +13,18 @@ const byte PIN_SPI_SCK = 5;
 const byte PIN_SPI_CIPO = 6;
 const byte PIN_SPI_COPI = 7;
 
+# 16 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
 # 17 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
-
+# 18 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
 # 19 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
 # 20 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
 # 21 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
-# 22 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
+
+# 21 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+// #include "SoftwareSerial.h"
 # 23 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
 # 24 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
-# 25 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 2
-# 33 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 34 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 ICM_20948_SPI myICM; // If using SPI create an ICM_20948_SPI object
 SdFat sd;
 File csvFile;
@@ -42,6 +43,16 @@ int count = 0;
 
 char fileName[13] = "WIPAD" "00.csv";
 char dataTransmit[20];
+
+// disable FIFO
+// AM_CRITICAL_BEGIN
+// UARTn(0)->LCRH_b.FEN = 0;
+// UARTn(1)->LCRH_b.FEN = 0;
+// AM_CRITICAL_END
+
+//==Initialize UART
+UART mySerial(12, 13);
+// Qwiic_I2C qwiic;
 
 //==Queue for tracking previous gyroscope values========================
 
@@ -125,7 +136,8 @@ const float nu = 10;
 const float eta = 2;
 const float pi = 3.1416;
 const float f_min = 1.3;
-
+//==Initialize Software Serial============================
+// SoftwareSerial mySerial(RXpin, TXpin);
 //==Variables for AFO=====================================
 float F;
 float th_d = 0.00, th_cap = 0.00;
@@ -141,6 +153,7 @@ void setup()
   Wire.begin();
   Serial.begin(115200);
   Serial1.begin(115200);
+  mySerial.begin(115200);
   //  while(!SERIAL_PORT){};
 
   pinMode(PIN_PWR_LED, OUTPUT);
@@ -183,17 +196,17 @@ void setup()
     }
   }
   csvFile = sd.open(fileName, (
-# 191 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 204 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              2 /* +1 == FREAD|FWRITE */ 
-# 191 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 204 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 191 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 204 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x0200 /* open with file create */ 
-# 191 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 204 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 191 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 204 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x4000 /* non blocking I/O (POSIX style) */ 
-# 191 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 204 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              /*|< Open at EOF.*/));
   csvFile.print("currTime");
   csvFile.print(",");
@@ -281,17 +294,17 @@ void loop()
 
   count = count + 1;
   csvFile = sd.open(fileName, (
-# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 290 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              2 /* +1 == FREAD|FWRITE */ 
-# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 290 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 290 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x0200 /* open with file create */ 
-# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 290 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              | 
-# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
+# 290 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino" 3
                              0x4000 /* non blocking I/O (POSIX style) */ 
-# 277 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+# 290 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
                              /*|< Open at EOF.*/));
 
   startTime = millis();
@@ -441,11 +454,19 @@ void loop()
       res = floatToString(phi_GC) + "," +
             String(indHS) + "," +
             String(indTO) + "," +
-            String(indMS) + ",";
+            String(indMS);
 
-      Serial.println(phi_GC);
+      int len = res.length();
+
+      // Serial1.write()
+
+      mySerial.println(res);
+
       Serial.println(res);
-      Serial1.println(res);
+      // SERIAL_PORT.println(phi_GC);
+      // Serial1.write(indHS);
+      // SERIAL_PORT.println(res);
+      // Serial1.println(res);
 
       // SERIAL_PORT.print(phi_GC);
       // SERIAL_PORT.print(",");
@@ -464,11 +485,6 @@ void loop()
       // SERIAL_PORT_1.print(",");
       // SERIAL_PORT_1.print(indMS);
       // SERIAL_PORT_1.println();
-
-      Wire.beginTransmission(8);
-      // Wire.write(res);
-      Wire.endTransmission();
-      // delay(100);
     }
     dt = (millis() - start) / 1000.0;
   }
@@ -518,8 +534,6 @@ void imuPowerOff()
 void AFO()
 {
 
-  // Calculate the Pelvis Acceleration from the Analog Accelerometer data
-  // Obtained by checking accelerometer reading for 1 g and -1 g and using equation y=mx+c;x=(y-c)/m;
   th_d = (gyroZ * pi) / 180; //*9.81;//-13.21;
 
   th_cap = Y[2 * M + 1]; // Initializing th_cap  to beta

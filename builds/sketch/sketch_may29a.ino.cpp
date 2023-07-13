@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #line 1 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 // Original Author: Yogesh Singh
-// Openlog Artemis Adaptation: Pragnesh Barik
 
 const byte PIN_IMU_POWER = 27;
 const byte PIN_PWR_LED = 29;
@@ -16,12 +15,12 @@ const byte PIN_SPI_CIPO = 6;
 const byte PIN_SPI_COPI = 7;
 
 #include <limits>
-
 #include "ICM_20948.h"
 #include <cmath>
 #include <SPI.h>
 #include <string>
 #include <String.h>
+// #include "SoftwareSerial.h"
 #include <Wire.h>
 #include <SdFat.h>
 
@@ -29,6 +28,8 @@ const byte PIN_SPI_COPI = 7;
 #define SERIAL_PORT Serial
 #define SERIAL_PORT_1 Serial1
 #define SPI_PORT SPI
+#define RXpin 13
+#define TXpin 11
 #define CS_PIN PIN_IMU_CHIP_SELECT
 #define SPI_FREQ 5000000 // You can override the default SPI frequency
 
@@ -50,6 +51,16 @@ int count = 0;
 #define FILE_BASE_NAME "WIPAD"
 char fileName[13] = FILE_BASE_NAME "00.csv";
 char dataTransmit[20];
+
+// disable FIFO
+// AM_CRITICAL_BEGIN
+// UARTn(0)->LCRH_b.FEN = 0;
+// UARTn(1)->LCRH_b.FEN = 0;
+// AM_CRITICAL_END
+
+//==Initialize UART
+UART mySerial(12, 13);
+// Qwiic_I2C qwiic;
 
 //==Queue for tracking previous gyroscope values========================
 #define Q_SIZE 15
@@ -133,7 +144,8 @@ const float nu = 10;
 const float eta = 2;
 const float pi = 3.1416;
 const float f_min = 1.3;
-
+//==Initialize Software Serial============================
+// SoftwareSerial mySerial(RXpin, TXpin);
 //==Variables for AFO=====================================
 float F;
 float th_d = 0.00, th_cap = 0.00;
@@ -144,34 +156,35 @@ float phi_GC = 0.0, phi_HS = 0.0;
 
 // * sprintf
 // * phi_GC, indHS, indTO,  intMS send data to tx pins and I2C
-#line 145 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 157 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void setup();
-#line 273 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 286 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void loop();
-#line 471 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 487 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 float get_time();
-#line 473 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
-void beginSD();
-#line 483 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
-void microSDPowerOn();
 #line 489 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+void beginSD();
+#line 499 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+void microSDPowerOn();
+#line 505 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void imuPowerOn();
-#line 494 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 510 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void imuPowerOff();
-#line 500 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 516 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void AFO();
-#line 542 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 556 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void Write_SDcard();
-#line 571 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 585 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 String floatToString(float number);
-#line 614 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 628 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 bool enableCIPOpullUp();
-#line 145 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
+#line 157 "E:\\Projects\\Artemis\\CustomCode\\sketch_may29a\\sketch_may29a.ino"
 void setup()
 {
   Wire.begin();
   SERIAL_PORT.begin(115200);
-  SERIAL_PORT_1.begin(115200);
+  Serial1.begin(115200);
+  mySerial.begin(115200);
   //  while(!SERIAL_PORT){};
 
   pinMode(PIN_PWR_LED, OUTPUT);
@@ -448,11 +461,19 @@ void loop()
       res = floatToString(phi_GC) + "," +
             String(indHS) + "," +
             String(indTO) + "," +
-            String(indMS) + ",";
+            String(indMS);
 
-      SERIAL_PORT.println(phi_GC);
-      SERIAL_PORT.println(res);
-      SERIAL_PORT_1.println(res);
+      int len = res.length();
+
+      // Serial1.write()
+
+      mySerial.println(res);
+
+      Serial.println(res);
+      // SERIAL_PORT.println(phi_GC);
+      // Serial1.write(indHS);
+      // SERIAL_PORT.println(res);
+      // Serial1.println(res);
 
       // SERIAL_PORT.print(phi_GC);
       // SERIAL_PORT.print(",");
@@ -471,11 +492,6 @@ void loop()
       // SERIAL_PORT_1.print(",");
       // SERIAL_PORT_1.print(indMS);
       // SERIAL_PORT_1.println();
-
-      Wire.beginTransmission(8);
-      // Wire.write(res);
-      Wire.endTransmission();
-      // delay(100);
     }
     dt = (millis() - start) / 1000.0;
   }
@@ -525,8 +541,6 @@ void imuPowerOff()
 void AFO()
 {
 
-  // Calculate the Pelvis Acceleration from the Analog Accelerometer data
-  // Obtained by checking accelerometer reading for 1 g and -1 g and using equation y=mx+c;x=(y-c)/m;
   th_d = (gyroZ * pi) / 180; //*9.81;//-13.21;
 
   th_cap = Y[2 * M + 1]; // Initializing th_cap  to beta
